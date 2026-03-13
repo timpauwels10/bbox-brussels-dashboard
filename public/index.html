@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>bpost Bbox | Analyse Bruxelles-Capitale</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bpost-red: #E30613;
+            --navy: #1B3A5C;
+            --navy-light: #2c5aa0;
+            --teal: #0D8C8C;
+            --teal-light: #10B9B9;
+            --green: #059669;
+            --orange: #D97706;
+            --red-muted: #DC2626;
+            --bg: #F8FAFC;
+            --card: #FFFFFF;
+            --border: #E2E8F0;
+            --text: #1E293B;
+            --text-muted: #64748B;
+            --text-light: #94A3B8;
+            --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.08), 0 2px 4px -2px rgba(0,0,0,0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -4px rgba(0,0,0,0.06);
+            --radius: 12px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); color: var(--text); }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 50%, var(--teal) 100%);
+            color: white;
+            padding: 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+        .header-inner {
+            max-width: 1920px;
+            margin: 0 auto;
+            padding: 16px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .logo-box {
+            background: var(--bpost-red);
+            border-radius: 10px;
+            padding: 8px 14px;
+            font-weight: 800;
+            font-size: 18px;
+            letter-spacing: 1px;
+        }
+        .header-title h1 {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+        }
+        .header-title p {
+            font-size: 13px;
+            opacity: 0.8;
+            font-weight: 400;
+        }
+        .header-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-white { background: white; color: var(--navy); }
+        .btn-white:hover { background: #f1f5f9; transform: translateY(-1px); }
+        .btn-red { background: var(--bpost-red); color: white; }
+        .btn-red:hover { background: #c00510; transform: translateY(-1px); }
+        .btn-outline { background: transparent; color: white; border: 1.5px solid rgba(255,255,255,0.4); }
+        .btn-outline:hover { border-color: white; background: rgba(255,255,255,0.1); }
+
+        /* Navigation tabs */
+        .nav-tabs {
+            display: flex;
+            gap: 0;
+            background: rgba(0,0,0,0.15);
+        }
+        .nav-tab {
+            padding: 12px 28px;
+            font-size: 13px;
+            font-weight: 500;
+            color: rgba(255,255,255,0.7);
+            cursor: pointer;
+            border: none;
+            background: none;
+            transition: all 0.2s;
+            border-bottom: 3px solid transparent;
+            letter-spacing: 0.3px;
+        }
+        .nav-tab:hover { color: white; background: rgba(255,255,255,0.05); }
+        .nav-tab.active {
+            color: white;
+            border-bottom-color: var(--bpost-red);
+            background: rgba(255,255,255,0.08);
+        }
+
+        /* Main layout */
+        .main { max-width: 1920px; margin: 0 auto; }
+
+        /* Tab panels */
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
+
+        /* ===== OVERVIEW TAB ===== */
+        .overview-hero {
+            padding: 40px 32px 20px;
+        }
+        .hero-title {
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--navy);
+            margin-bottom: 6px;
+            letter-spacing: -0.5px;
+        }
+        .hero-subtitle {
+            font-size: 16px;
+            color: var(--text-muted);
+            max-width: 700px;
+        }
+
+        /* KPI Cards */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            padding: 20px 32px;
+        }
+        .kpi-card {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 24px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+        .kpi-card:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-2px);
+        }
+        .kpi-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 4px;
+            height: 100%;
+        }
+        .kpi-card.navy::before { background: var(--navy); }
+        .kpi-card.green::before { background: var(--green); }
+        .kpi-card.orange::before { background: var(--orange); }
+        .kpi-card.teal::before { background: var(--teal); }
+        .kpi-label {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+        .kpi-value {
+            font-size: 36px;
+            font-weight: 800;
+            letter-spacing: -1px;
+            line-height: 1;
+        }
+        .kpi-card.navy .kpi-value { color: var(--navy); }
+        .kpi-card.green .kpi-value { color: var(--green); }
+        .kpi-card.orange .kpi-value { color: var(--orange); }
+        .kpi-card.teal .kpi-value { color: var(--teal); }
+        .kpi-detail {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-top: 6px;
+        }
+
+        /* Charts row */
+        .charts-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            padding: 0 32px 20px;
+        }
+        .chart-card {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 24px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+        }
+        .chart-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+        .chart-subtitle {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+        }
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+
+        /* Impact cards */
+        .impact-section {
+            padding: 0 32px 32px;
+        }
+        .impact-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--navy);
+            margin-bottom: 16px;
+        }
+        .impact-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+        .impact-card {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 28px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            text-align: center;
+            transition: all 0.3s;
+        }
+        .impact-card:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-3px);
+        }
+        .impact-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+            font-size: 26px;
+        }
+        .impact-stat {
+            font-size: 32px;
+            font-weight: 800;
+            letter-spacing: -1px;
+            margin-bottom: 4px;
+        }
+        .impact-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+        .impact-desc {
+            font-size: 13px;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        /* ===== MAP TAB ===== */
+        .map-layout {
+            display: flex;
+            height: calc(100vh - 100px);
+        }
+        .map-sidebar {
+            width: 340px;
+            background: var(--card);
+            border-right: 1px solid var(--border);
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+        .sidebar-section {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+        }
+        .sidebar-title {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+        }
+        .filter-group { margin-bottom: 12px; }
+        .filter-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 6px;
+        }
+        .search-input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            font-size: 13px;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .search-input:focus { border-color: var(--navy); }
+        .checkbox-list {
+            max-height: 280px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 5px 0;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        .checkbox-item input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--navy);
+        }
+        .checkbox-item .count {
+            margin-left: auto;
+            font-size: 11px;
+            color: var(--text-light);
+            background: #f1f5f9;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .status-dot.green { background: var(--green); }
+        .status-dot.orange { background: var(--orange); }
+        .status-dot.red { background: var(--red-muted); }
+        .map-container {
+            flex: 1;
+            position: relative;
+        }
+        #map { width: 100%; height: 100%; }
+        .map-stats-overlay {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: white;
+            border-radius: 10px;
+            padding: 14px 18px;
+            box-shadow: var(--shadow-lg);
+            z-index: 500;
+            display: flex;
+            gap: 20px;
+            font-size: 13px;
+        }
+        .map-stat { text-align: center; }
+        .map-stat-value { font-weight: 800; font-size: 20px; }
+        .map-stat-label { color: var(--text-muted); font-size: 11px; }
+
+        /* ===== DATA TAB ===== */
+        .data-panel {
+            padding: 24px 32px;
+        }
+        .data-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .data-search {
+            width: 300px;
+            padding: 10px 14px;
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            font-size: 13px;
+            font-family: inherit;
+            outline: none;
+        }
+        .data-search:focus { border-color: var(--navy); }
+        .data-table-wrapper {
+            background: var(--card);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        .data-table thead {
+            background: var(--navy);
+            color: white;
+            position: sticky;
+            top: 0;
+        }
+        .data-table th {
+            padding: 12px 14px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 12px;
+            letter-spacing: 0.3px;
+            cursor: pointer;
+            white-space: nowrap;
+            user-select: none;
+        }
+        .data-table th:hover { background: var(--navy-light); }
+        .data-table td {
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--border);
+        }
+        .data-table tbody tr:hover { background: #f8fafc; }
+        .data-table tbody tr:nth-child(even) { background: #fafbfc; }
+        .data-table tbody tr:nth-child(even):hover { background: #f1f5f9; }
+        .status-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .status-badge.oui { background: #dcfce7; color: #166534; }
+        .status-badge.verifier { background: #fef3c7; color: #92400e; }
+        .status-badge.non { background: #fee2e2; color: #991b1b; }
+        .table-scroll { max-height: calc(100vh - 240px); overflow-y: auto; }
+        .table-footer {
+            padding: 12px 14px;
+            background: #f8fafc;
+            font-size: 12px;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border);
+        }
+
+        /* ===== ARGUMENTS TAB ===== */
+        .args-panel {
+            padding: 32px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .args-intro {
+            margin-bottom: 32px;
+        }
+        .args-intro h2 {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--navy);
+            margin-bottom: 8px;
+        }
+        .args-intro p {
+            font-size: 15px;
+            color: var(--text-muted);
+            line-height: 1.6;
+            max-width: 700px;
+        }
+        .arg-cards {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+        }
+        .arg-card {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 28px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--navy);
+            transition: all 0.3s;
+        }
+        .arg-card:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-2px);
+        }
+        .arg-card:nth-child(2) { border-left-color: var(--teal); }
+        .arg-card:nth-child(3) { border-left-color: var(--green); }
+        .arg-card:nth-child(4) { border-left-color: var(--bpost-red); }
+        .arg-card:nth-child(5) { border-left-color: var(--orange); }
+        .arg-card:nth-child(6) { border-left-color: var(--navy-light); }
+        .arg-number {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-light);
+            margin-bottom: 8px;
+        }
+        .arg-card-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 10px;
+        }
+        .arg-card-text {
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+        .arg-stat {
+            margin-top: 14px;
+            padding-top: 14px;
+            border-top: 1px solid var(--border);
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--navy);
+        }
+        .arg-stat span {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-in {
+            animation: fadeInUp 0.5s ease-out forwards;
+            opacity: 0;
+        }
+        .animate-in:nth-child(1) { animation-delay: 0.05s; }
+        .animate-in:nth-child(2) { animation-delay: 0.1s; }
+        .animate-in:nth-child(3) { animation-delay: 0.15s; }
+        .animate-in:nth-child(4) { animation-delay: 0.2s; }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+            .charts-row { grid-template-columns: 1fr; }
+            .impact-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 768px) {
+            .kpi-grid { grid-template-columns: 1fr; }
+            .impact-grid { grid-template-columns: 1fr; }
+            .arg-cards { grid-template-columns: 1fr; }
+            .map-sidebar { width: 100%; height: 300px; }
+            .map-layout { flex-direction: column; }
+            .header-actions { display: none; }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Select all / deselect */
+        .filter-actions {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        .filter-btn {
+            font-size: 11px;
+            color: var(--navy);
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-weight: 600;
+            padding: 2px 0;
+        }
+        .filter-btn:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-inner">
+            <div class="header-left">
+                <div class="logo-box">bpost</div>
+                <div class="header-title">
+                    <h1>Bbox Brussels Dashboard</h1>
+                    <p>Analyse des propriétés régionales — Inventaire 2024</p>
+                </div>
+            </div>
+            <div class="header-actions">
+                <a href="/api/download/excel" class="btn btn-white">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    Télécharger Excel
+                </a>
+                <button class="btn btn-outline" onclick="window.print()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                    Imprimer
+                </button>
+            </div>
+        </div>
+        <div class="nav-tabs">
+            <button class="nav-tab active" data-tab="overview">Vue d'ensemble</button>
+            <button class="nav-tab" data-tab="map">Carte interactive</button>
+            <button class="nav-tab" data-tab="data">Données complètes</button>
+            <button class="nav-tab" data-tab="arguments">Arguments clés</button>
+        </div>
+    </div>
+
+    <!-- OVERVIEW TAB -->
+    <div id="tab-overview" class="tab-panel active">
+        <div class="overview-hero">
+            <h2 class="hero-title">579 propriétés analysées</h2>
+            <p class="hero-subtitle">Analyse complète de l'inventaire 2024 des propriétés de la Région de Bruxelles-Capitale pour l'implantation de Bbox bpost.</p>
+        </div>
+
+        <div class="kpi-grid">
+            <div class="kpi-card navy animate-in">
+                <div class="kpi-label">Propriétés analysées</div>
+                <div class="kpi-value" data-count="579">0</div>
+                <div class="kpi-detail">Réparties sur 19 communes</div>
+            </div>
+            <div class="kpi-card green animate-in">
+                <div class="kpi-label">Directement réalisable</div>
+                <div class="kpi-value" data-count="191">0</div>
+                <div class="kpi-detail">33% de l'inventaire total</div>
+            </div>
+            <div class="kpi-card orange animate-in">
+                <div class="kpi-label">À vérifier sur site</div>
+                <div class="kpi-value" data-count="231">0</div>
+                <div class="kpi-detail">Potentiel supplémentaire de 40%</div>
+            </div>
+            <div class="kpi-card teal animate-in">
+                <div class="kpi-label">Couverture totale potentielle</div>
+                <div class="kpi-value" data-count="73" data-suffix="%">0%</div>
+                <div class="kpi-detail">422 sites possibles sur 579</div>
+            </div>
+        </div>
+
+        <div class="charts-row">
+            <div class="chart-card animate-in">
+                <div class="chart-title">Répartition par faisabilité</div>
+                <div class="chart-subtitle">Analyse technique de chaque propriété</div>
+                <div class="chart-container"><canvas id="feasibilityChart"></canvas></div>
+            </div>
+            <div class="chart-card animate-in">
+                <div class="chart-title">Top 10 communes par potentiel</div>
+                <div class="chart-subtitle">Nombre de sites réalisables ou à vérifier</div>
+                <div class="chart-container"><canvas id="communeChart"></canvas></div>
+            </div>
+        </div>
+
+        <div class="impact-section">
+            <div class="impact-title">Impact estimé pour Bruxelles</div>
+            <div class="impact-grid">
+                <div class="impact-card animate-in">
+                    <div class="impact-icon" style="background:#dcfce7;">🚗</div>
+                    <div class="impact-stat" style="color:var(--green);">-30%</div>
+                    <div class="impact-label">Réduction du trafic lié aux livraisons</div>
+                    <div class="impact-desc">Moins de véhicules de livraison dans les rues bruxelloises grâce à la consolidation des colis</div>
+                </div>
+                <div class="impact-card animate-in">
+                    <div class="impact-icon" style="background:#e0f2fe;">🌍</div>
+                    <div class="impact-stat" style="color:var(--teal);">-55%</div>
+                    <div class="impact-label">Réduction CO₂ par colis</div>
+                    <div class="impact-desc">Empreinte carbone réduite par le regroupement intelligent des livraisons en un point unique</div>
+                </div>
+                <div class="impact-card animate-in">
+                    <div class="impact-icon" style="background:#fef3c7;">⏱️</div>
+                    <div class="impact-stat" style="color:var(--orange);">146h</div>
+                    <div class="impact-label">Heures perdues par conducteur/an</div>
+                    <div class="impact-desc">Bruxelles est la 4ème ville la plus congestionnée d'Europe — chaque Bbox réduit cette pression</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAP TAB -->
+    <div id="tab-map" class="tab-panel">
+        <div class="map-layout">
+            <div class="map-sidebar">
+                <div class="sidebar-section">
+                    <div class="sidebar-title">Recherche</div>
+                    <input type="text" class="search-input" id="mapSearch" placeholder="Adresse, commune, cadastral...">
+                </div>
+                <div class="sidebar-section">
+                    <div class="sidebar-title">Faisabilité</div>
+                    <div id="statusFilters"></div>
+                </div>
+                <div class="sidebar-section">
+                    <div class="sidebar-title">Communes</div>
+                    <div class="filter-actions">
+                        <button class="filter-btn" onclick="toggleAllCommunes(true)">Tout sélectionner</button>
+                        <span style="color:#cbd5e1">|</span>
+                        <button class="filter-btn" onclick="toggleAllCommunes(false)">Tout désélectionner</button>
+                    </div>
+                    <div class="checkbox-list" id="communeFilters"></div>
+                </div>
+            </div>
+            <div class="map-container">
+                <div id="map"></div>
+                <div class="map-stats-overlay" id="mapStats">
+                    <div class="map-stat">
+                        <div class="map-stat-value" id="mapShown">0</div>
+                        <div class="map-stat-label">Affichés</div>
+                    </div>
+                    <div class="map-stat">
+                        <div class="map-stat-value" style="color:var(--green);" id="mapOui">0</div>
+                        <div class="map-stat-label">Possible</div>
+                    </div>
+                    <div class="map-stat">
+                        <div class="map-stat-value" style="color:var(--orange);" id="mapVerifier">0</div>
+                        <div class="map-stat-label">À vérifier</div>
+                    </div>
+                    <div class="map-stat">
+                        <div class="map-stat-value" style="color:var(--red-muted);" id="mapNon">0</div>
+                        <div class="map-stat-label">Non</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- DATA TAB -->
+    <div id="tab-data" class="tab-panel">
+        <div class="data-panel">
+            <div class="data-header">
+                <div>
+                    <h2 style="font-size:20px;font-weight:700;color:var(--navy);">Base de données complète</h2>
+                    <p style="font-size:13px;color:var(--text-muted);margin-top:2px;">579 propriétés — cliquez sur un en-tête pour trier</p>
+                </div>
+                <input type="text" class="data-search" id="tableSearch" placeholder="Rechercher dans les données...">
+            </div>
+            <div class="data-table-wrapper">
+                <div class="table-scroll">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th data-sort="commune">Commune ↕</th>
+                                <th data-sort="address">Adresse ↕</th>
+                                <th data-sort="description">Description ↕</th>
+                                <th data-sort="superficie">Superficie ↕</th>
+                                <th data-sort="cadastral">Réf. cadastrale ↕</th>
+                                <th data-sort="list">Liste ↕</th>
+                                <th data-sort="status">Bbox ↕</th>
+                                <th data-sort="reason">Motif ↕</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody"></tbody>
+                    </table>
+                </div>
+                <div class="table-footer" id="tableFooter">Affichage de 579 propriétés</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ARGUMENTS TAB -->
+    <div id="tab-arguments" class="tab-panel">
+        <div class="args-panel">
+            <div class="args-intro">
+                <h2>Pourquoi implanter des Bbox sur le domaine public?</h2>
+                <p>Six arguments fondamentaux pour convaincre le Gouvernement de la Région de Bruxelles-Capitale de l'intérêt stratégique des consignes à colis bpost.</p>
+            </div>
+            <div class="arg-cards">
+                <div class="arg-card animate-in">
+                    <div class="arg-number">Argument 01</div>
+                    <div class="arg-card-title">Service public universel</div>
+                    <div class="arg-card-text">bpost, en tant qu'opérateur postal historique, assure la mission de service public. Les Bbox garantissent un accès équitable à la réception de colis pour tous les Bruxellois — 24h/24, 7j/7, sans discrimination géographique ou sociale.</div>
+                    <div class="arg-stat">24/7 <span>accessibilité garantie</span></div>
+                </div>
+                <div class="arg-card animate-in">
+                    <div class="arg-number">Argument 02</div>
+                    <div class="arg-card-title">Réduction drastique du trafic</div>
+                    <div class="arg-card-text">Bruxelles est la 4ème ville la plus congestionnée d'Europe. Chaque Bbox remplace des dizaines de livraisons individuelles par un point de collecte unique, réduisant le nombre de véhicules de livraison de 30% dans les zones desservies.</div>
+                    <div class="arg-stat">-30% <span>véhicules de livraison</span></div>
+                </div>
+                <div class="arg-card animate-in">
+                    <div class="arg-number">Argument 03</div>
+                    <div class="arg-card-title">Impact environnemental majeur</div>
+                    <div class="arg-card-text">Le regroupement intelligent des colis réduit l'empreinte carbone de 55% par livraison. Avec 191 sites directement réalisables, c'est l'équivalent de retirer des centaines de véhicules utilitaires des rues bruxelloises chaque jour.</div>
+                    <div class="arg-stat">-55% <span>CO₂ par colis livré</span></div>
+                </div>
+                <div class="arg-card animate-in">
+                    <div class="arg-number">Argument 04</div>
+                    <div class="arg-card-title">Valorisation du patrimoine immobilier</div>
+                    <div class="arg-card-text">Les 579 propriétés régionales analysées incluent de nombreux espaces sous-utilisés. L'implantation d'une Bbox génère un revenu locatif pour la Région tout en transformant des espaces passifs en infrastructure urbaine utile.</div>
+                    <div class="arg-stat">579 <span>propriétés analysées</span></div>
+                </div>
+                <div class="arg-card animate-in">
+                    <div class="arg-number">Argument 05</div>
+                    <div class="arg-card-title">Qualité de vie des habitants</div>
+                    <div class="arg-card-text">Fini les livraisons manquées, les avis de passage et les détours au bureau de poste. Les Bbox améliorent le quotidien des 1,2 million de Bruxellois en offrant une solution de retrait flexible à proximité de chez eux.</div>
+                    <div class="arg-stat">1.2M <span>habitants bénéficiaires</span></div>
+                </div>
+                <div class="arg-card animate-in">
+                    <div class="arg-number">Argument 06</div>
+                    <div class="arg-card-title">Position de leader européen</div>
+                    <div class="arg-card-text">Avec 2 500 Bbox déjà déployées en Belgique et une augmentation d'utilisation de 62%, bpost est un pionnier reconnu. Bruxelles peut devenir la capitale européenne de la logistique urbaine durable en partenariat avec bpost.</div>
+                    <div class="arg-stat">+62% <span>croissance d'utilisation</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    let allProperties = [];
+    let map, markers = [];
+
+    // Load data
+    fetch('/api/properties')
+        .then(r => r.json())
+        .then(data => {
+            allProperties = data;
+            initOverview();
+            initMap();
+            initTable();
+            initFilters();
+            animateCounters();
+        });
+
+    // Tab navigation
+    document.querySelectorAll('.nav-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            tab.classList.add('active');
+            document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+            if (tab.dataset.tab === 'map' && map) {
+                setTimeout(() => map.invalidateSize(), 100);
+            }
+        });
+    });
+
+    // Animated counters
+    function animateCounters() {
+        document.querySelectorAll('[data-count]').forEach(el => {
+            const target = parseInt(el.dataset.count);
+            const suffix = el.dataset.suffix || '';
+            const duration = 1500;
+            const start = Date.now();
+            const tick = () => {
+                const elapsed = Date.now() - start;
+                const progress = Math.min(elapsed / duration, 1);
+                const eased = 1 - Math.pow(1 - progress, 3);
+                el.textContent = Math.round(target * eased) + suffix;
+                if (progress < 1) requestAnimationFrame(tick);
+            };
+            tick();
+        });
+    }
+
+    // Overview charts
+    function initOverview() {
+        // Feasibility doughnut
+        const feasCounts = {};
+        allProperties.forEach(p => {
+            const f = p.feasibility || 'Inconnu';
+            feasCounts[f] = (feasCounts[f] || 0) + 1;
+        });
+        new Chart(document.getElementById('feasibilityChart'), {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(feasCounts),
+                datasets: [{
+                    data: Object.values(feasCounts),
+                    backgroundColor: ['#059669', '#D97706', '#94A3B8', '#64748B', '#CBD5E1', '#E2E8F0'],
+                    borderWidth: 2,
+                    borderColor: '#fff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '55%',
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: { padding: 14, font: { size: 12, family: 'Inter' }, usePointStyle: true, pointStyleWidth: 10 }
+                    }
+                }
+            }
+        });
+
+        // Commune bar chart
+        const communeCounts = {};
+        allProperties.forEach(p => {
+            if (p.status === 'Oui' || p.status === 'À vérifier') {
+                communeCounts[p.commune] = (communeCounts[p.commune] || 0) + 1;
+            }
+        });
+        const sorted = Object.entries(communeCounts).sort((a, b) => b[1] - a[1]).slice(0, 10);
+        new Chart(document.getElementById('communeChart'), {
+            type: 'bar',
+            data: {
+                labels: sorted.map(s => s[0]),
+                datasets: [{
+                    label: 'Sites potentiels',
+                    data: sorted.map(s => s[1]),
+                    backgroundColor: '#1B3A5C',
+                    borderRadius: 6,
+                    barThickness: 24
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y',
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { grid: { color: '#E2E8F0' }, ticks: { font: { size: 11, family: 'Inter' } } },
+                    y: { grid: { display: false }, ticks: { font: { size: 12, family: 'Inter' } } }
+                }
+            }
+        });
+    }
+
+    // Map
+    function initMap() {
+        map = L.map('map').setView([50.847, 4.357], 12);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; OpenStreetMap &copy; CARTO',
+            maxZoom: 19
+        }).addTo(map);
+        updateMapMarkers();
+    }
+
+    function getColor(status) {
+        if (status === 'Oui') return '#059669';
+        if (status === 'À vérifier') return '#D97706';
+        return '#DC2626';
+    }
+
+    function updateMapMarkers() {
+        markers.forEach(m => map.removeLayer(m));
+        markers = [];
+        const filtered = getFilteredProperties();
+        let oui = 0, verifier = 0, non = 0;
+
+        filtered.forEach(p => {
+            if (!p.lat || !p.lng) return;
+            const color = getColor(p.status);
+            const marker = L.circleMarker([p.lat, p.lng], {
+                radius: 7,
+                fillColor: color,
+                color: '#fff',
+                weight: 2,
+                fillOpacity: 0.85
+            }).addTo(map);
+            marker.bindPopup(`
+                <div style="font-family:Inter,sans-serif;min-width:220px;">
+                    <div style="font-weight:700;font-size:14px;margin-bottom:4px;">${p.commune}</div>
+                    <div style="font-size:12px;color:#64748B;margin-bottom:8px;">${p.address}</div>
+                    <div style="font-size:12px;"><b>Description:</b> ${p.description}</div>
+                    <div style="font-size:12px;"><b>Cadastral:</b> ${p.cadastral}</div>
+                    <div style="font-size:12px;"><b>Superficie:</b> ${p.superficie}</div>
+                    <div style="margin-top:8px;padding-top:8px;border-top:1px solid #e2e8f0;">
+                        <span style="display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;
+                            background:${p.status === 'Oui' ? '#dcfce7' : p.status === 'À vérifier' ? '#fef3c7' : '#fee2e2'};
+                            color:${p.status === 'Oui' ? '#166534' : p.status === 'À vérifier' ? '#92400e' : '#991b1b'};">
+                            ${p.feasibility}
+                        </span>
+                    </div>
+                    ${p.reason ? `<div style="font-size:11px;color:#94A3B8;margin-top:4px;">${p.reason}</div>` : ''}
+                </div>
+            `);
+            markers.push(marker);
+            if (p.status === 'Oui') oui++;
+            else if (p.status === 'À vérifier') verifier++;
+            else non++;
+        });
+
+        document.getElementById('mapShown').textContent = filtered.length;
+        document.getElementById('mapOui').textContent = oui;
+        document.getElementById('mapVerifier').textContent = verifier;
+        document.getElementById('mapNon').textContent = non;
+    }
+
+    function getFilteredProperties() {
+        const search = (document.getElementById('mapSearch').value || '').toLowerCase();
+        const statusChecked = [...document.querySelectorAll('#statusFilters input:checked')].map(i => i.value);
+        const communeChecked = [...document.querySelectorAll('#communeFilters input:checked')].map(i => i.value);
+
+        return allProperties.filter(p => {
+            if (statusChecked.length && !statusChecked.includes(p.status)) return false;
+            if (communeChecked.length && !communeChecked.includes(p.commune)) return false;
+            if (search) {
+                const text = [p.commune, p.address, p.description, p.cadastral, p.feasibility].join(' ').toLowerCase();
+                if (!text.includes(search)) return false;
+            }
+            return true;
+        });
+    }
+
+    // Filters
+    function initFilters() {
+        // Status filters
+        const statuses = [
+            { value: 'Oui', label: 'Possible', cls: 'green' },
+            { value: 'À vérifier', label: 'À vérifier', cls: 'orange' },
+            { value: 'Non', label: 'Non réalisable', cls: 'red' }
+        ];
+        const statusDiv = document.getElementById('statusFilters');
+        statuses.forEach(s => {
+            const count = allProperties.filter(p => p.status === s.value).length;
+            statusDiv.innerHTML += `
+                <label class="checkbox-item">
+                    <input type="checkbox" value="${s.value}" checked>
+                    <span class="status-dot ${s.cls}"></span>
+                    ${s.label}
+                    <span class="count">${count}</span>
+                </label>`;
+        });
+
+        // Commune filters
+        const communes = {};
+        allProperties.forEach(p => communes[p.commune] = (communes[p.commune] || 0) + 1);
+        const sorted = Object.entries(communes).sort((a, b) => b[1] - a[1]);
+        const communeDiv = document.getElementById('communeFilters');
+        sorted.forEach(([name, count]) => {
+            communeDiv.innerHTML += `
+                <label class="checkbox-item">
+                    <input type="checkbox" value="${name}" checked>
+                    ${name}
+                    <span class="count">${count}</span>
+                </label>`;
+        });
+
+        // Event listeners
+        document.querySelectorAll('#statusFilters input, #communeFilters input').forEach(input => {
+            input.addEventListener('change', updateMapMarkers);
+        });
+        document.getElementById('mapSearch').addEventListener('input', updateMapMarkers);
+    }
+
+    function toggleAllCommunes(checked) {
+        document.querySelectorAll('#communeFilters input').forEach(i => i.checked = checked);
+        updateMapMarkers();
+    }
+
+    // Data table
+    let sortCol = null, sortDir = 1;
+    function initTable() {
+        renderTable(allProperties);
+        document.getElementById('tableSearch').addEventListener('input', function() {
+            const q = this.value.toLowerCase();
+            const filtered = allProperties.filter(p => {
+                return [p.commune, p.address, p.description, p.cadastral, p.feasibility, p.reason]
+                    .join(' ').toLowerCase().includes(q);
+            });
+            renderTable(filtered);
+        });
+        document.querySelectorAll('.data-table th[data-sort]').forEach(th => {
+            th.addEventListener('click', () => {
+                const col = th.dataset.sort;
+                if (sortCol === col) sortDir *= -1; else { sortCol = col; sortDir = 1; }
+                const sorted = [...allProperties].sort((a, b) => {
+                    const va = (a[col] || '').toString();
+                    const vb = (b[col] || '').toString();
+                    return va.localeCompare(vb, 'fr') * sortDir;
+                });
+                renderTable(sorted);
+            });
+        });
+    }
+
+    function renderTable(data) {
+        const tbody = document.getElementById('tableBody');
+        tbody.innerHTML = data.map(p => {
+            const badgeCls = p.status === 'Oui' ? 'oui' : p.status === 'À vérifier' ? 'verifier' : 'non';
+            const badgeText = p.status === 'Oui' ? 'Possible' : p.status === 'À vérifier' ? 'À vérifier' : 'Non';
+            return `<tr>
+                <td>${p.commune}</td>
+                <td>${p.address}</td>
+                <td>${p.description}</td>
+                <td>${p.superficie}</td>
+                <td style="font-family:monospace;font-size:11px;">${p.cadastral}</td>
+                <td>${p.list}</td>
+                <td><span class="status-badge ${badgeCls}">${badgeText}</span></td>
+                <td style="font-size:12px;color:var(--text-muted);">${p.reason || '—'}</td>
+            </tr>`;
+        }).join('');
+        document.getElementById('tableFooter').textContent = `Affichage de ${data.length} propriétés sur ${allProperties.length}`;
+    }
+    </script>
+</body>
+</html>
