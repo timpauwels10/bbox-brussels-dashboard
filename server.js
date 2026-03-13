@@ -14,7 +14,7 @@ app.get('/api/download/excel', (req, res) => {
   res.download(path.join(__dirname, 'data', 'Bbox_Analyse_Bruxelles.xlsx'), 'Bbox_Analyse_Bruxelles.xlsx');
 });
 
-app.get('*', (req, res) => {
+app.use((req, res) => {
   res.sendFile('public/index.html', { root: __dirname });
 });
 
