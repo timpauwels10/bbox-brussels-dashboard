@@ -577,6 +577,81 @@
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
+        /* Commune scope badge */
+        .scope-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 20px;
+            padding: 5px 14px;
+            font-size: 12px;
+            font-weight: 600;
+            color: white;
+            letter-spacing: 0.3px;
+        }
+        .scope-badge .scope-close {
+            cursor: pointer;
+            opacity: 0.7;
+            font-size: 14px;
+            line-height: 1;
+            margin-left: 2px;
+        }
+        .scope-badge .scope-close:hover { opacity: 1; }
+        .breadcrumb {
+            padding: 8px 32px;
+            font-size: 12px;
+            color: var(--text-muted);
+            background: #f1f5f9;
+            border-bottom: 1px solid var(--border);
+        }
+        .breadcrumb a { color: var(--navy); text-decoration: none; font-weight: 500; }
+        .breadcrumb a:hover { text-decoration: underline; }
+        .breadcrumb span { margin: 0 6px; color: var(--text-light); }
+
+        /* Demo badge */
+        .demo-badge {
+            position: fixed;
+            bottom: 16px;
+            right: 16px;
+            background: var(--navy);
+            color: white;
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            opacity: 0.7;
+            z-index: 9999;
+            letter-spacing: 0.5px;
+        }
+
+        /* Commune selector in admin */
+        .commune-selector {
+            padding: 10px 14px;
+            border: 1.5px solid rgba(255,255,255,0.3);
+            border-radius: 8px;
+            font-size: 13px;
+            font-family: inherit;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            cursor: pointer;
+            outline: none;
+        }
+        .commune-selector option { color: var(--text); background: white; }
+        .commune-selector:focus { border-color: rgba(255,255,255,0.6); }
+
+        /* Commune boundary on map */
+        .commune-boundary-label {
+            background: none !important;
+            border: none !important;
+            box-shadow: none !important;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--navy);
+            text-shadow: 0 0 4px white, 0 0 4px white;
+        }
+
         /* Select all / deselect */
         .filter-actions {
             display: flex;
@@ -602,11 +677,15 @@
             <div class="header-left">
                 <div class="logo-box">bpost</div>
                 <div class="header-title">
-                    <h1>Bbox Brussels Dashboard</h1>
-                    <p>Analyse des propriétés régionales — Inventaire 2024</p>
+                    <h1 id="headerTitle">Bbox Brussels Dashboard</h1>
+                    <p id="headerSubtitle">Analyse des propriétés régionales — Inventaire 2024</p>
                 </div>
             </div>
             <div class="header-actions">
+                <span id="scopeBadge" style="display:none;"></span>
+                <select class="commune-selector" id="communeSelector" onchange="navigateToCommune(this.value)">
+                    <option value="">Toutes les communes</option>
+                </select>
                 <a href="/api/download/excel" class="btn btn-white">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                     Télécharger Excel
@@ -624,6 +703,7 @@
             <button class="nav-tab" data-tab="arguments">Arguments clés</button>
         </div>
     </div>
+    <div class="breadcrumb" id="breadcrumb" style="display:none;"></div>
 
     <!-- OVERVIEW TAB -->
     <div id="tab-overview" class="tab-panel active">
@@ -745,7 +825,7 @@
             <div class="data-header">
                 <div>
                     <h2 style="font-size:20px;font-weight:700;color:var(--navy);">Base de données complète</h2>
-                    <p style="font-size:13px;color:var(--text-muted);margin-top:2px;">579 propriétés — cliquez sur un en-tête pour trier</p>
+                    <p style="font-size:13px;color:var(--text-muted);margin-top:2px;" id="dataSubtitle">579 propriétés — cliquez sur un en-tête pour trier</p>
                 </div>
                 <input type="text" class="data-search" id="tableSearch" placeholder="Rechercher dans les données...">
             </div>
@@ -822,14 +902,236 @@
 
     <script>
     let allProperties = [];
+    let scopedProperties = [];
     let map, markers = [];
+    let communeBoundary = null;
+    let feasibilityChart = null;
+    let communeChart = null;
+
+    // Brussels communes with NIS codes and approximate bounding boxes
+    const COMMUNES = {
+        'anderlecht':           { name: 'Anderlecht',             nis: '21001', bounds: [[50.820, 4.280], [50.870, 4.360]] },
+        'auderghem':            { name: 'Auderghem',              nis: '21002', bounds: [[50.805, 4.410], [50.830, 4.450]] },
+        'berchem-sainte-agathe':{ name: 'Berchem-Sainte-Agathe',  nis: '21003', bounds: [[50.860, 4.280], [50.880, 4.310]] },
+        'bruxelles-ville':      { name: 'Bruxelles-Ville',        nis: '21004', bounds: [[50.830, 4.320], [50.870, 4.400]] },
+        'etterbeek':            { name: 'Etterbeek',              nis: '21005', bounds: [[50.825, 4.370], [50.845, 4.405]] },
+        'evere':                { name: 'Evere',                  nis: '21006', bounds: [[50.860, 4.370], [50.885, 4.410]] },
+        'forest':               { name: 'Forest',                 nis: '21007', bounds: [[50.800, 4.310], [50.825, 4.355]] },
+        'ganshoren':            { name: 'Ganshoren',              nis: '21008', bounds: [[50.865, 4.295], [50.880, 4.325]] },
+        'ixelles':              { name: 'Ixelles',                nis: '21009', bounds: [[50.815, 4.350], [50.840, 4.400]] },
+        'jette':                { name: 'Jette',                  nis: '21010', bounds: [[50.870, 4.310], [50.895, 4.345]] },
+        'koekelberg':           { name: 'Koekelberg',             nis: '21011', bounds: [[50.855, 4.320], [50.870, 4.340]] },
+        'molenbeek':            { name: 'Molenbeek-Saint-Jean',   nis: '21012', bounds: [[50.845, 4.300], [50.870, 4.340]] },
+        'saint-gilles':         { name: 'Saint-Gilles',           nis: '21013', bounds: [[50.822, 4.335], [50.840, 4.360]] },
+        'saint-josse':          { name: 'Saint-Josse-ten-Noode',  nis: '21014', bounds: [[50.850, 4.365], [50.860, 4.385]] },
+        'schaerbeek':           { name: 'Schaerbeek',             nis: '21015', bounds: [[50.850, 4.365], [50.880, 4.410]] },
+        'uccle':                { name: 'Uccle',                  nis: '21016', bounds: [[50.780, 4.320], [50.820, 4.380]] },
+        'watermael-boitsfort':  { name: 'Watermael-Boitsfort',    nis: '21017', bounds: [[50.790, 4.390], [50.815, 4.430]] },
+        'woluwe-saint-lambert': { name: 'Woluwe-Saint-Lambert',   nis: '21018', bounds: [[50.835, 4.405], [50.860, 4.445]] },
+        'woluwe-saint-pierre':  { name: 'Woluwe-Saint-Pierre',   nis: '21019', bounds: [[50.825, 4.420], [50.850, 4.460]] }
+    };
+
+    // Demo mode placeholder values for empty fields
+    const DEMO_PLACEHOLDERS = {
+        description: ['Terrain à bâtir', 'Espace vert communal', 'Parking public', 'Voirie - Espace Public', 'Local commercial vacant'],
+        comments: ['Accès direct voirie', 'Proximité transport en commun', 'Zone résidentielle dense', 'Bonne visibilité piétonne'],
+        reason: ['Terrain accessible', 'Espace public disponible', 'Site stratégique identifié']
+    };
+
+    // Parse URL parameters
+    function getUrlParams() {
+        const params = new URLSearchParams(window.location.search);
+        return {
+            commune: (params.get('commune') || '').toLowerCase().trim(),
+            demo: params.get('demo') === 'true'
+        };
+    }
+
+    // Find commune config by name or NIS code
+    function findCommune(param) {
+        if (!param) return null;
+        // Direct key match
+        if (COMMUNES[param]) return COMMUNES[param];
+        // NIS code match
+        for (const key in COMMUNES) {
+            if (COMMUNES[key].nis === param) return COMMUNES[key];
+        }
+        // Fuzzy name match (case-insensitive, match commune name from data)
+        const lower = param.toLowerCase();
+        for (const key in COMMUNES) {
+            if (COMMUNES[key].name.toLowerCase() === lower) return COMMUNES[key];
+            if (key.includes(lower) || lower.includes(key)) return COMMUNES[key];
+        }
+        return null;
+    }
+
+    // Build a lookup from actual data commune names to COMMUNES keys
+    function buildCommuneNameMap(data) {
+        const dataNames = [...new Set(data.map(p => p.commune))];
+        const nameMap = {};
+        dataNames.forEach(dName => {
+            const lower = dName.toLowerCase();
+            for (const key in COMMUNES) {
+                const cName = COMMUNES[key].name.toLowerCase();
+                if (lower === cName || cName.includes(lower) || lower.includes(cName)) {
+                    nameMap[dName] = key;
+                    break;
+                }
+            }
+        });
+        return nameMap;
+    }
+
+    // Match a property to a commune config
+    function matchPropertyToCommune(property, communeConfig) {
+        if (!communeConfig || !property.commune) return false;
+        const pCommune = property.commune.toLowerCase();
+        const cName = communeConfig.name.toLowerCase();
+        return pCommune === cName || cName.includes(pCommune) || pCommune.includes(cName);
+    }
+
+    // Apply demo mode placeholders
+    function applyDemoMode(data) {
+        return data.map((p, i) => {
+            const filled = { ...p };
+            if (!filled.description || filled.description.trim() === '') {
+                filled.description = DEMO_PLACEHOLDERS.description[i % DEMO_PLACEHOLDERS.description.length];
+            }
+            if (!filled.comments || filled.comments.trim() === '') {
+                filled.comments = DEMO_PLACEHOLDERS.comments[i % DEMO_PLACEHOLDERS.comments.length];
+            }
+            if (!filled.reason || filled.reason.trim() === '') {
+                filled.reason = DEMO_PLACEHOLDERS.reason[i % DEMO_PLACEHOLDERS.reason.length];
+            }
+            return filled;
+        });
+    }
+
+    // Navigate to commune
+    function navigateToCommune(value) {
+        if (!value) {
+            window.location.href = window.location.pathname;
+        } else {
+            window.location.href = window.location.pathname + '?commune=' + encodeURIComponent(value);
+        }
+    }
+
+    // Exit scope
+    function exitScope() {
+        window.location.href = window.location.pathname;
+    }
+
+    // Populate commune selector
+    function populateCommuneSelector() {
+        const select = document.getElementById('communeSelector');
+        const sortedCommunes = Object.entries(COMMUNES).sort((a, b) => a[1].name.localeCompare(b[1].name));
+        sortedCommunes.forEach(([key, c]) => {
+            const opt = document.createElement('option');
+            opt.value = key;
+            opt.textContent = `${c.name} (${c.nis})`;
+            select.appendChild(opt);
+        });
+    }
+
+    // Update UI for commune scope
+    function applyScopeUI(communeConfig, isDemo) {
+        const titleEl = document.getElementById('headerTitle');
+        const subtitleEl = document.getElementById('headerSubtitle');
+        const badgeEl = document.getElementById('scopeBadge');
+        const breadcrumbEl = document.getElementById('breadcrumb');
+        const selectorEl = document.getElementById('communeSelector');
+
+        if (communeConfig) {
+            // Update header
+            titleEl.textContent = `${communeConfig.name} — Patrimoine Immobilier`;
+            subtitleEl.textContent = `Analyse Bbox — Commune de ${communeConfig.name}`;
+            document.title = `bpost Bbox | ${communeConfig.name}`;
+
+            // Show scope badge
+            badgeEl.innerHTML = `<span class="scope-badge">Vue: ${communeConfig.name} <span class="scope-close" onclick="exitScope()" title="Retour vue régionale">✕</span></span>`;
+            badgeEl.style.display = 'inline-flex';
+
+            // Show breadcrumb
+            breadcrumbEl.innerHTML = `<a href="${window.location.pathname}">Région</a><span>›</span>${communeConfig.name}`;
+            breadcrumbEl.style.display = 'block';
+
+            // Set selector value
+            for (const key in COMMUNES) {
+                if (COMMUNES[key].name === communeConfig.name) {
+                    selectorEl.value = key;
+                    break;
+                }
+            }
+        }
+
+        // Demo mode badge
+        if (isDemo) {
+            const demoBadge = document.createElement('div');
+            demoBadge.className = 'demo-badge';
+            demoBadge.textContent = 'Mode démo';
+            document.body.appendChild(demoBadge);
+        }
+    }
+
+    // Update KPI cards dynamically
+    function updateKPIs(data) {
+        const total = data.length;
+        const oui = data.filter(p => p.status === 'Oui').length;
+        const verifier = data.filter(p => p.status === 'À vérifier').length;
+        const potentiel = oui + verifier;
+        const pct = total > 0 ? Math.round((potentiel / total) * 100) : 0;
+
+        const kpiCards = document.querySelectorAll('.kpi-card');
+        // Card 0: Total
+        kpiCards[0].querySelector('.kpi-value').dataset.count = total;
+        kpiCards[0].querySelector('.kpi-detail').textContent = scopedCommune
+            ? `Commune de ${scopedCommune.name}`
+            : `Réparties sur 19 communes`;
+        // Card 1: Oui
+        kpiCards[1].querySelector('.kpi-value').dataset.count = oui;
+        kpiCards[1].querySelector('.kpi-detail').textContent = `${total > 0 ? Math.round((oui/total)*100) : 0}% de l'inventaire${scopedCommune ? ' communal' : ' total'}`;
+        // Card 2: À vérifier
+        kpiCards[2].querySelector('.kpi-value').dataset.count = verifier;
+        kpiCards[2].querySelector('.kpi-detail').textContent = `Potentiel supplémentaire de ${total > 0 ? Math.round((verifier/total)*100) : 0}%`;
+        // Card 3: Coverage
+        kpiCards[3].querySelector('.kpi-value').dataset.count = pct;
+        kpiCards[3].querySelector('.kpi-detail').textContent = `${potentiel} sites possibles sur ${total}`;
+
+        // Update hero title
+        document.querySelector('.hero-title').textContent = `${total} propriétés analysées`;
+        if (scopedCommune) {
+            document.querySelector('.hero-subtitle').textContent =
+                `Analyse de l'inventaire 2024 des propriétés de ${scopedCommune.name} pour l'implantation de Bbox bpost.`;
+        }
+    }
+
+    let scopedCommune = null;
 
     // Load data
     fetch('/api/properties')
         .then(r => r.json())
         .then(data => {
+            const params = getUrlParams();
+            scopedCommune = findCommune(params.commune);
+
             allProperties = data;
-            initOverview();
+
+            // Apply commune scope
+            if (scopedCommune) {
+                scopedProperties = data.filter(p => matchPropertyToCommune(p, scopedCommune));
+            } else {
+                scopedProperties = data;
+            }
+
+            // Apply demo mode
+            if (params.demo) {
+                scopedProperties = applyDemoMode(scopedProperties);
+            }
+
+            populateCommuneSelector();
+            applyScopeUI(scopedCommune, params.demo);
+            updateKPIs(scopedProperties);
+            initOverview(scopedProperties);
             initMap();
             initTable();
             initFilters();
@@ -868,14 +1170,16 @@
     }
 
     // Overview charts
-    function initOverview() {
+    function initOverview(data) {
         // Feasibility doughnut
         const feasCounts = {};
-        allProperties.forEach(p => {
+        data.forEach(p => {
             const f = p.feasibility || 'Inconnu';
             feasCounts[f] = (feasCounts[f] || 0) + 1;
         });
-        new Chart(document.getElementById('feasibilityChart'), {
+
+        if (feasibilityChart) feasibilityChart.destroy();
+        feasibilityChart = new Chart(document.getElementById('feasibilityChart'), {
             type: 'doughnut',
             data: {
                 labels: Object.keys(feasCounts),
@@ -901,13 +1205,15 @@
 
         // Commune bar chart
         const communeCounts = {};
-        allProperties.forEach(p => {
+        data.forEach(p => {
             if (p.status === 'Oui' || p.status === 'À vérifier') {
                 communeCounts[p.commune] = (communeCounts[p.commune] || 0) + 1;
             }
         });
         const sorted = Object.entries(communeCounts).sort((a, b) => b[1] - a[1]).slice(0, 10);
-        new Chart(document.getElementById('communeChart'), {
+
+        if (communeChart) communeChart.destroy();
+        communeChart = new Chart(document.getElementById('communeChart'), {
             type: 'bar',
             data: {
                 labels: sorted.map(s => s[0]),
@@ -939,6 +1245,34 @@
             attribution: '&copy; OpenStreetMap &copy; CARTO',
             maxZoom: 19
         }).addTo(map);
+
+        // If scoped, fit bounds and show boundary
+        if (scopedCommune) {
+            const bounds = L.latLngBounds(scopedCommune.bounds);
+            map.fitBounds(bounds, { padding: [30, 30] });
+
+            // Draw commune boundary rectangle
+            communeBoundary = L.rectangle(bounds, {
+                color: '#1B3A5C',
+                weight: 2,
+                opacity: 0.5,
+                fillColor: '#1B3A5C',
+                fillOpacity: 0.04,
+                dashArray: '6, 4'
+            }).addTo(map);
+
+            // Add commune name label at center
+            const center = bounds.getCenter();
+            L.marker(center, {
+                icon: L.divIcon({
+                    className: 'commune-boundary-label',
+                    html: scopedCommune.name,
+                    iconSize: [120, 20],
+                    iconAnchor: [60, 10]
+                })
+            }).addTo(map);
+        }
+
         updateMapMarkers();
     }
 
@@ -998,7 +1332,7 @@
         const statusChecked = [...document.querySelectorAll('#statusFilters input:checked')].map(i => i.value);
         const communeChecked = [...document.querySelectorAll('#communeFilters input:checked')].map(i => i.value);
 
-        return allProperties.filter(p => {
+        return scopedProperties.filter(p => {
             if (statusChecked.length && !statusChecked.includes(p.status)) return false;
             if (communeChecked.length && !communeChecked.includes(p.commune)) return false;
             if (search) {
@@ -1019,7 +1353,7 @@
         ];
         const statusDiv = document.getElementById('statusFilters');
         statuses.forEach(s => {
-            const count = allProperties.filter(p => p.status === s.value).length;
+            const count = scopedProperties.filter(p => p.status === s.value).length;
             statusDiv.innerHTML += `
                 <label class="checkbox-item">
                     <input type="checkbox" value="${s.value}" checked>
@@ -1031,7 +1365,7 @@
 
         // Commune filters
         const communes = {};
-        allProperties.forEach(p => communes[p.commune] = (communes[p.commune] || 0) + 1);
+        scopedProperties.forEach(p => communes[p.commune] = (communes[p.commune] || 0) + 1);
         const sorted = Object.entries(communes).sort((a, b) => b[1] - a[1]);
         const communeDiv = document.getElementById('communeFilters');
         sorted.forEach(([name, count]) => {
@@ -1058,10 +1392,11 @@
     // Data table
     let sortCol = null, sortDir = 1;
     function initTable() {
-        renderTable(allProperties);
+        document.getElementById('dataSubtitle').textContent = `${scopedProperties.length} propriétés — cliquez sur un en-tête pour trier`;
+        renderTable(scopedProperties);
         document.getElementById('tableSearch').addEventListener('input', function() {
             const q = this.value.toLowerCase();
-            const filtered = allProperties.filter(p => {
+            const filtered = scopedProperties.filter(p => {
                 return [p.commune, p.address, p.description, p.cadastral, p.feasibility, p.reason]
                     .join(' ').toLowerCase().includes(q);
             });
@@ -1071,7 +1406,7 @@
             th.addEventListener('click', () => {
                 const col = th.dataset.sort;
                 if (sortCol === col) sortDir *= -1; else { sortCol = col; sortDir = 1; }
-                const sorted = [...allProperties].sort((a, b) => {
+                const sorted = [...scopedProperties].sort((a, b) => {
                     const va = (a[col] || '').toString();
                     const vb = (b[col] || '').toString();
                     return va.localeCompare(vb, 'fr') * sortDir;
@@ -1097,7 +1432,7 @@
                 <td style="font-size:12px;color:var(--text-muted);">${p.reason || '—'}</td>
             </tr>`;
         }).join('');
-        document.getElementById('tableFooter').textContent = `Affichage de ${data.length} propriétés sur ${allProperties.length}`;
+        document.getElementById('tableFooter').textContent = `Affichage de ${data.length} propriétés sur ${scopedProperties.length}`;
     }
     </script>
 </body>
