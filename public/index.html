@@ -1,1439 +1,1293 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
+<!--
+    Sprint AI Website - Replit Deployment
+    Logo: Place sprint-ai-logo.png in the root directory
+-->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>bpost Bbox | Analyse Bruxelles-Capitale</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <title>Sprint AI - AI Prototypes & Internal Automation in Weeks</title>
+    <meta name="description" content="Sprint AI delivers AI prototypes for your products and AI automation for internal processes. ROI in 2-4 months. Built by an MBA who codes. 3-6 weeks delivery.">
+    <meta name="description" content="Sprint AI delivers AI prototypes in 3-6 weeks. Business-driven AI implementation for companies who can't wait 6 months.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Work+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --bpost-red: #E30613;
-            --navy: #1B3A5C;
-            --navy-light: #2c5aa0;
-            --teal: #0D8C8C;
-            --teal-light: #10B9B9;
-            --green: #059669;
-            --orange: #D97706;
-            --red-muted: #DC2626;
-            --bg: #F8FAFC;
-            --card: #FFFFFF;
-            --border: #E2E8F0;
-            --text: #1E293B;
-            --text-muted: #64748B;
-            --text-light: #94A3B8;
-            --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
-            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.08), 0 2px 4px -2px rgba(0,0,0,0.06);
-            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -4px rgba(0,0,0,0.06);
-            --radius: 12px;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); color: var(--text); }
+        :root {
+            --color-sprint-blue: #0066FF;
+            --color-electric: #00F0FF;
+            --color-dark: #0A0E1A;
+            --color-charcoal: #1A1F2E;
+            --color-silver: #A8B2D1;
+            --color-white: #FFFFFF;
+            --color-gold: #FFD700;
+            
+            --font-display: 'Bebas Neue', sans-serif;
+            --font-body: 'Work Sans', sans-serif;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--color-dark);
+            color: var(--color-white);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* Background animation */
+        .bg-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            opacity: 0.03;
+            background-image: 
+                linear-gradient(var(--color-sprint-blue) 1px, transparent 1px),
+                linear-gradient(90deg, var(--color-sprint-blue) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: gridMove 20s linear infinite;
+        }
+
+        @keyframes gridMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
 
         /* Header */
-        .header {
-            background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 50%, var(--teal) 100%);
-            color: white;
-            padding: 0;
-            position: sticky;
+        header {
+            position: fixed;
             top: 0;
+            width: 100%;
             z-index: 1000;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-        }
-        .header-inner {
-            max-width: 1920px;
-            margin: 0 auto;
-            padding: 16px 32px;
+            padding: 1.5rem 5%;
             display: flex;
-            align-items: center;
             justify-content: space-between;
+            align-items: center;
+            background: rgba(10, 14, 26, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(0, 102, 255, 0.2);
         }
-        .header-left {
+
+        .logo {
+            font-family: var(--font-display);
+            font-size: 2.5rem;
+            letter-spacing: 2px;
+            color: var(--color-white);
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: 0.5rem;
         }
-        .logo-box {
-            background: var(--bpost-red);
-            border-radius: 10px;
-            padding: 8px 14px;
-            font-weight: 800;
-            font-size: 18px;
+
+        .logo img {
+            height: 60px;
+            width: auto;
+        }
+
+        .logo-sprint {
+            color: var(--color-sprint-blue);
+        }
+
+        .logo-ai {
+            color: var(--color-electric);
+        }
+
+        .nav {
+            display: flex;
+            gap: 2.5rem;
+            align-items: center;
+        }
+
+        .nav a {
+            color: var(--color-silver);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+            position: relative;
+        }
+
+        .nav a:hover {
+            color: var(--color-electric);
+        }
+
+        .nav a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--color-electric);
+            transition: width 0.3s;
+        }
+
+        .nav a:hover::after {
+            width: 100%;
+        }
+
+        .cta-button {
+            background: var(--color-sprint-blue);
+            color: var(--color-white);
+            padding: 0.75rem 1.75rem;
+            border-radius: 4px;
+            font-weight: 600;
+            transition: all 0.3s;
+            border: 2px solid var(--color-sprint-blue);
+        }
+
+        .cta-button:hover {
+            background: transparent;
+            color: var(--color-sprint-blue);
+            transform: translateY(-2px);
+        }
+
+        /* Hero Section */
+        .hero {
+            position: relative;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            padding: 8rem 5% 4rem;
+            z-index: 1;
+        }
+
+        .hero-content {
+            max-width: 1400px;
+            width: 100%;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        .hero-text h1 {
+            font-family: var(--font-display);
+            font-size: 6.5rem;
+            line-height: 0.9;
+            margin-bottom: 1.5rem;
             letter-spacing: 1px;
         }
-        .header-title h1 {
-            font-size: 22px;
-            font-weight: 700;
-            letter-spacing: -0.3px;
+
+        .hero-text .highlight {
+            color: var(--color-sprint-blue);
+            display: block;
         }
-        .header-title p {
-            font-size: 13px;
-            opacity: 0.8;
-            font-weight: 400;
+
+        .hero-text .highlight-2 {
+            color: var(--color-electric);
         }
-        .header-actions {
+
+        .hero-subtitle {
+            font-size: 1.4rem;
+            color: var(--color-silver);
+            margin-bottom: 2.5rem;
+            font-weight: 300;
+            max-width: 600px;
+        }
+
+        .hero-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat {
+            border-left: 3px solid var(--color-sprint-blue);
+            padding-left: 1rem;
+        }
+
+        .stat-number {
+            font-family: var(--font-display);
+            font-size: 3rem;
+            color: var(--color-electric);
+            line-height: 1;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--color-silver);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .hero-ctas {
             display: flex;
-            gap: 12px;
+            gap: 1.5rem;
             align-items: center;
         }
-        .btn {
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-size: 13px;
+
+        .btn-primary {
+            background: var(--color-sprint-blue);
+            color: var(--color-white);
+            padding: 1.2rem 2.5rem;
+            border: none;
+            font-size: 1.1rem;
             font-weight: 600;
             cursor: pointer;
-            border: none;
-            transition: all 0.2s;
+            transition: all 0.3s;
+            border: 2px solid var(--color-sprint-blue);
+            font-family: var(--font-body);
             text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
+            display: inline-block;
         }
-        .btn-white { background: white; color: var(--navy); }
-        .btn-white:hover { background: #f1f5f9; transform: translateY(-1px); }
-        .btn-red { background: var(--bpost-red); color: white; }
-        .btn-red:hover { background: #c00510; transform: translateY(-1px); }
-        .btn-outline { background: transparent; color: white; border: 1.5px solid rgba(255,255,255,0.4); }
-        .btn-outline:hover { border-color: white; background: rgba(255,255,255,0.1); }
 
-        /* Navigation tabs */
-        .nav-tabs {
-            display: flex;
-            gap: 0;
-            background: rgba(0,0,0,0.15);
+        .btn-primary:hover {
+            background: transparent;
+            transform: translateX(5px);
         }
-        .nav-tab {
-            padding: 12px 28px;
-            font-size: 13px;
-            font-weight: 500;
-            color: rgba(255,255,255,0.7);
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--color-silver);
+            padding: 1.2rem 2.5rem;
+            border: 2px solid var(--color-silver);
+            font-size: 1.1rem;
+            font-weight: 600;
             cursor: pointer;
-            border: none;
-            background: none;
-            transition: all 0.2s;
-            border-bottom: 3px solid transparent;
-            letter-spacing: 0.3px;
-        }
-        .nav-tab:hover { color: white; background: rgba(255,255,255,0.05); }
-        .nav-tab.active {
-            color: white;
-            border-bottom-color: var(--bpost-red);
-            background: rgba(255,255,255,0.08);
+            transition: all 0.3s;
+            font-family: var(--font-body);
+            text-decoration: none;
+            display: inline-block;
         }
 
-        /* Main layout */
-        .main { max-width: 1920px; margin: 0 auto; }
-
-        /* Tab panels */
-        .tab-panel { display: none; }
-        .tab-panel.active { display: block; }
-
-        /* ===== OVERVIEW TAB ===== */
-        .overview-hero {
-            padding: 40px 32px 20px;
+        .btn-secondary:hover {
+            color: var(--color-white);
+            border-color: var(--color-white);
         }
-        .hero-title {
-            font-size: 32px;
-            font-weight: 800;
-            color: var(--navy);
-            margin-bottom: 6px;
-            letter-spacing: -0.5px;
+
+        /* Hero Visual */
+        .hero-visual {
+            position: relative;
+            height: 500px;
         }
-        .hero-subtitle {
-            font-size: 16px;
-            color: var(--text-muted);
+
+        .sprint-track {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+
+        .track-lane {
+            position: absolute;
+            left: 0;
+            height: 60px;
+            background: rgba(0, 102, 255, 0.1);
+            border-left: 4px solid var(--color-sprint-blue);
+            border-right: 4px solid var(--color-sprint-blue);
+            animation: trackSlide 3s ease-in-out infinite;
+        }
+
+        .track-lane:nth-child(1) { top: 50px; animation-delay: 0s; }
+        .track-lane:nth-child(2) { top: 140px; animation-delay: 0.2s; }
+        .track-lane:nth-child(3) { top: 230px; animation-delay: 0.4s; }
+        .track-lane:nth-child(4) { top: 320px; animation-delay: 0.6s; }
+
+        @keyframes trackSlide {
+            0%, 100% { width: 60%; opacity: 0.3; }
+            50% { width: 100%; opacity: 0.6; }
+        }
+
+        .runner-icon {
+            position: absolute;
+            right: 10%;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 8rem;
+            color: var(--color-electric);
+            animation: runnerPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes runnerPulse {
+            0%, 100% { transform: translateY(-50%) scale(1); }
+            50% { transform: translateY(-50%) scale(1.1); }
+        }
+
+        /* Section Styles */
+        section {
+            position: relative;
+            z-index: 1;
+            padding: 6rem 5%;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            font-family: var(--font-display);
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            letter-spacing: 1px;
+        }
+
+        .section-subtitle {
+            font-size: 1.3rem;
+            color: var(--color-silver);
+            margin-bottom: 4rem;
             max-width: 700px;
         }
 
-        /* KPI Cards */
-        .kpi-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 20px;
-            padding: 20px 32px;
-        }
-        .kpi-card {
-            background: var(--card);
-            border-radius: var(--radius);
-            padding: 24px;
-            box-shadow: var(--shadow);
-            border: 1px solid var(--border);
-            position: relative;
-            overflow: hidden;
-            transition: all 0.3s;
-        }
-        .kpi-card:hover {
-            box-shadow: var(--shadow-lg);
-            transform: translateY(-2px);
-        }
-        .kpi-card::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0;
-            width: 4px;
-            height: 100%;
-        }
-        .kpi-card.navy::before { background: var(--navy); }
-        .kpi-card.green::before { background: var(--green); }
-        .kpi-card.orange::before { background: var(--orange); }
-        .kpi-card.teal::before { background: var(--teal); }
-        .kpi-label {
-            font-size: 12px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            color: var(--text-muted);
-            margin-bottom: 8px;
-        }
-        .kpi-value {
-            font-size: 36px;
-            font-weight: 800;
-            letter-spacing: -1px;
-            line-height: 1;
-        }
-        .kpi-card.navy .kpi-value { color: var(--navy); }
-        .kpi-card.green .kpi-value { color: var(--green); }
-        .kpi-card.orange .kpi-value { color: var(--orange); }
-        .kpi-card.teal .kpi-value { color: var(--teal); }
-        .kpi-detail {
-            font-size: 13px;
-            color: var(--text-muted);
-            margin-top: 6px;
-        }
-
-        /* Charts row */
-        .charts-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            padding: 0 32px 20px;
-        }
-        .chart-card {
-            background: var(--card);
-            border-radius: var(--radius);
-            padding: 24px;
-            box-shadow: var(--shadow);
-            border: 1px solid var(--border);
-        }
-        .chart-title {
-            font-size: 16px;
-            font-weight: 700;
-            color: var(--text);
-            margin-bottom: 4px;
-        }
-        .chart-subtitle {
-            font-size: 12px;
-            color: var(--text-muted);
-            margin-bottom: 16px;
-        }
-        .chart-container {
-            position: relative;
-            height: 300px;
-        }
-
-        /* Impact cards */
-        .impact-section {
-            padding: 0 32px 32px;
-        }
-        .impact-title {
-            font-size: 20px;
-            font-weight: 700;
-            color: var(--navy);
-            margin-bottom: 16px;
-        }
-        .impact-grid {
+        /* Process Section */
+        .process-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
+            gap: 3rem;
+            margin-top: 3rem;
         }
-        .impact-card {
-            background: var(--card);
-            border-radius: var(--radius);
-            padding: 28px;
-            box-shadow: var(--shadow);
-            border: 1px solid var(--border);
-            text-align: center;
+
+        .process-card {
+            background: var(--color-charcoal);
+            padding: 2.5rem;
+            border-left: 4px solid var(--color-sprint-blue);
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .process-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 240, 255, 0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .process-card:hover::before {
+            left: 100%;
+        }
+
+        .process-card:hover {
+            transform: translateY(-5px);
+            border-left-color: var(--color-electric);
+        }
+
+        .process-number {
+            font-family: var(--font-display);
+            font-size: 4rem;
+            color: var(--color-sprint-blue);
+            line-height: 1;
+            margin-bottom: 1rem;
+        }
+
+        .process-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .process-card p {
+            color: var(--color-silver);
+            line-height: 1.6;
+        }
+
+        .process-meta {
+            display: flex;
+            gap: 2rem;
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid rgba(168, 178, 209, 0.2);
+        }
+
+        .meta-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .meta-label {
+            font-size: 0.75rem;
+            color: var(--color-silver);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .meta-value {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            color: var(--color-electric);
+        }
+
+        /* Advantages Section */
+        .advantages-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .advantage-card {
+            background: var(--color-charcoal);
+            padding: 2.5rem;
+            display: flex;
+            gap: 2rem;
             transition: all 0.3s;
         }
-        .impact-card:hover {
-            box-shadow: var(--shadow-lg);
-            transform: translateY(-3px);
+
+        .advantage-card:hover {
+            background: rgba(0, 102, 255, 0.1);
         }
-        .impact-icon {
-            width: 56px;
-            height: 56px;
-            border-radius: 16px;
+
+        .advantage-icon {
+            font-size: 3rem;
+            flex-shrink: 0;
+        }
+
+        .advantage-content h3 {
+            font-size: 1.5rem;
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+        }
+
+        .advantage-content p {
+            color: var(--color-silver);
+            line-height: 1.6;
+        }
+
+        /* Pricing Section */
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2.5rem;
+            margin-top: 3rem;
+        }
+
+        .pricing-card {
+            background: var(--color-charcoal);
+            padding: 3rem;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .pricing-card.featured {
+            border-color: var(--color-sprint-blue);
+            transform: scale(1.05);
+        }
+
+        .pricing-card.featured::before {
+            content: 'MOST POPULAR';
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--color-sprint-blue);
+            color: var(--color-white);
+            padding: 0.5rem 1.5rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .pricing-card:hover {
+            border-color: var(--color-electric);
+            transform: translateY(-5px);
+        }
+
+        .pricing-card.featured:hover {
+            transform: scale(1.05) translateY(-5px);
+        }
+
+        .pricing-name {
+            font-family: var(--font-display);
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            letter-spacing: 1px;
+        }
+
+        .pricing-tagline {
+            color: var(--color-silver);
+            margin-bottom: 2rem;
+            font-size: 0.9rem;
+        }
+
+        .pricing-amount {
+            font-family: var(--font-display);
+            font-size: 4rem;
+            color: var(--color-electric);
+            line-height: 1;
+            margin-bottom: 0.5rem;
+        }
+
+        .pricing-period {
+            color: var(--color-silver);
+            margin-bottom: 2rem;
+        }
+
+        .pricing-features {
+            list-style: none;
+            margin-bottom: 2.5rem;
+        }
+
+        .pricing-features li {
+            padding: 0.75rem 0;
+            border-bottom: 1px solid rgba(168, 178, 209, 0.1);
+            color: var(--color-silver);
+        }
+
+        .pricing-features li:before {
+            content: '→ ';
+            color: var(--color-sprint-blue);
+            font-weight: bold;
+        }
+
+        .pricing-cta {
+            width: 100%;
+            padding: 1rem;
+            background: transparent;
+            border: 2px solid var(--color-silver);
+            color: var(--color-silver);
+            font-family: var(--font-body);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .pricing-cta:hover {
+            background: var(--color-sprint-blue);
+            border-color: var(--color-sprint-blue);
+            color: var(--color-white);
+        }
+
+        .pricing-card.featured .pricing-cta {
+            background: var(--color-sprint-blue);
+            border-color: var(--color-sprint-blue);
+            color: var(--color-white);
+        }
+
+        .pricing-card.featured .pricing-cta:hover {
+            background: var(--color-electric);
+            border-color: var(--color-electric);
+        }
+
+        /* About Section */
+        .about-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        .about-image {
+            width: 100%;
+            height: 500px;
+            background: linear-gradient(135deg, var(--color-sprint-blue) 0%, var(--color-electric) 100%);
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 16px;
-            font-size: 26px;
-        }
-        .impact-stat {
-            font-size: 32px;
-            font-weight: 800;
-            letter-spacing: -1px;
-            margin-bottom: 4px;
-        }
-        .impact-label {
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--text);
-            margin-bottom: 8px;
-        }
-        .impact-desc {
-            font-size: 13px;
-            color: var(--text-muted);
-            line-height: 1.5;
-        }
-
-        /* ===== MAP TAB ===== */
-        .map-layout {
-            display: flex;
-            height: calc(100vh - 100px);
-        }
-        .map-sidebar {
-            width: 340px;
-            background: var(--card);
-            border-right: 1px solid var(--border);
-            overflow-y: auto;
-            flex-shrink: 0;
-        }
-        .sidebar-section {
-            padding: 16px 20px;
-            border-bottom: 1px solid var(--border);
-        }
-        .sidebar-title {
-            font-size: 12px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            color: var(--text-muted);
-            margin-bottom: 12px;
-        }
-        .filter-group { margin-bottom: 12px; }
-        .filter-label {
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--text);
-            margin-bottom: 6px;
-        }
-        .search-input {
-            width: 100%;
-            padding: 10px 12px;
-            border: 1.5px solid var(--border);
-            border-radius: 8px;
-            font-size: 13px;
-            font-family: inherit;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-        .search-input:focus { border-color: var(--navy); }
-        .checkbox-list {
-            max-height: 280px;
-            overflow-y: auto;
-            padding-right: 4px;
-        }
-        .checkbox-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 5px 0;
-            cursor: pointer;
-            font-size: 13px;
-        }
-        .checkbox-item input[type="checkbox"] {
-            width: 16px;
-            height: 16px;
-            accent-color: var(--navy);
-        }
-        .checkbox-item .count {
-            margin-left: auto;
-            font-size: 11px;
-            color: var(--text-light);
-            background: #f1f5f9;
-            padding: 2px 6px;
-            border-radius: 4px;
-        }
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            flex-shrink: 0;
-        }
-        .status-dot.green { background: var(--green); }
-        .status-dot.orange { background: var(--orange); }
-        .status-dot.red { background: var(--red-muted); }
-        .map-container {
-            flex: 1;
+            font-size: 8rem;
             position: relative;
+            overflow: hidden;
         }
-        #map { width: 100%; height: 100%; }
-        .map-stats-overlay {
-            position: absolute;
-            bottom: 20px;
-            left: 20px;
-            background: white;
-            border-radius: 10px;
-            padding: 14px 18px;
-            box-shadow: var(--shadow-lg);
-            z-index: 500;
-            display: flex;
-            gap: 20px;
-            font-size: 13px;
-        }
-        .map-stat { text-align: center; }
-        .map-stat-value { font-weight: 800; font-size: 20px; }
-        .map-stat-label { color: var(--text-muted); font-size: 11px; }
 
-        /* ===== DATA TAB ===== */
-        .data-panel {
-            padding: 24px 32px;
+        .about-image::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><rect width="2" height="2" fill="white" opacity="0.1"/></svg>');
+            background-size: 20px 20px;
         }
-        .data-header {
+
+        .about-text h2 {
+            font-family: var(--font-display);
+            font-size: 3.5rem;
+            margin-bottom: 1.5rem;
+            line-height: 1.1;
+        }
+
+        .about-text p {
+            color: var(--color-silver);
+            margin-bottom: 1.5rem;
+            font-size: 1.1rem;
+            line-height: 1.8;
+        }
+
+        .credentials {
+            display: flex;
+            gap: 3rem;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(168, 178, 209, 0.2);
+        }
+
+        .credential {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .credential-title {
+            font-family: var(--font-display);
+            font-size: 1.8rem;
+            color: var(--color-electric);
+            line-height: 1;
+            margin-bottom: 0.5rem;
+        }
+
+        .credential-desc {
+            color: var(--color-silver);
+            font-size: 0.9rem;
+        }
+
+        /* CTA Section */
+        .cta-section {
+            background: linear-gradient(135deg, var(--color-sprint-blue) 0%, var(--color-electric) 100%);
+            padding: 6rem 5%;
+            text-align: center;
+            margin: 4rem 0;
+        }
+
+        .cta-section h2 {
+            font-family: var(--font-display);
+            font-size: 4.5rem;
+            margin-bottom: 1.5rem;
+            line-height: 1.1;
+        }
+
+        .cta-section p {
+            font-size: 1.4rem;
+            margin-bottom: 3rem;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .cta-section .btn-primary {
+            background: var(--color-dark);
+            color: var(--color-white);
+            border-color: var(--color-dark);
+            font-size: 1.2rem;
+            padding: 1.5rem 3rem;
+        }
+
+        .cta-section .btn-primary:hover {
+            background: var(--color-white);
+            color: var(--color-dark);
+            border-color: var(--color-white);
+        }
+
+        /* Footer */
+        footer {
+            background: var(--color-charcoal);
+            padding: 4rem 5%;
+            position: relative;
+            z-index: 1;
+        }
+
+        .footer-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 4rem;
+        }
+
+        .footer-brand {
+            font-family: var(--font-display);
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            letter-spacing: 1px;
+        }
+
+        .footer-brand img {
+            height: 50px;
+            width: auto;
+            margin-bottom: 1rem;
+        }
+
+        .footer-tagline {
+            color: var(--color-silver);
+            margin-bottom: 2rem;
+        }
+
+        .footer-section h4 {
+            font-size: 1.1rem;
+            margin-bottom: 1.5rem;
+            color: var(--color-electric);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .footer-section ul {
+            list-style: none;
+        }
+
+        .footer-section ul li {
+            margin-bottom: 0.75rem;
+        }
+
+        .footer-section ul li a {
+            color: var(--color-silver);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .footer-section ul li a:hover {
+            color: var(--color-electric);
+        }
+
+        .footer-bottom {
+            max-width: 1400px;
+            margin: 3rem auto 0;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(168, 178, 209, 0.2);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 16px;
+            color: var(--color-silver);
+            font-size: 0.9rem;
         }
-        .data-search {
-            width: 300px;
-            padding: 10px 14px;
-            border: 1.5px solid var(--border);
-            border-radius: 8px;
-            font-size: 13px;
-            font-family: inherit;
-            outline: none;
-        }
-        .data-search:focus { border-color: var(--navy); }
-        .data-table-wrapper {
-            background: var(--card);
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            border: 1px solid var(--border);
-            overflow: hidden;
-        }
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 13px;
-        }
-        .data-table thead {
-            background: var(--navy);
-            color: white;
-            position: sticky;
-            top: 0;
-        }
-        .data-table th {
-            padding: 12px 14px;
-            text-align: left;
-            font-weight: 600;
-            font-size: 12px;
-            letter-spacing: 0.3px;
-            cursor: pointer;
-            white-space: nowrap;
-            user-select: none;
-        }
-        .data-table th:hover { background: var(--navy-light); }
-        .data-table td {
-            padding: 10px 14px;
-            border-bottom: 1px solid var(--border);
-        }
-        .data-table tbody tr:hover { background: #f8fafc; }
-        .data-table tbody tr:nth-child(even) { background: #fafbfc; }
-        .data-table tbody tr:nth-child(even):hover { background: #f1f5f9; }
-        .status-badge {
-            display: inline-block;
-            padding: 3px 10px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 600;
-            white-space: nowrap;
-        }
-        .status-badge.oui { background: #dcfce7; color: #166534; }
-        .status-badge.verifier { background: #fef3c7; color: #92400e; }
-        .status-badge.non { background: #fee2e2; color: #991b1b; }
-        .table-scroll { max-height: calc(100vh - 240px); overflow-y: auto; }
-        .table-footer {
-            padding: 12px 14px;
-            background: #f8fafc;
-            font-size: 12px;
-            color: var(--text-muted);
-            border-top: 1px solid var(--border);
-        }
-
-        /* ===== ARGUMENTS TAB ===== */
-        .args-panel {
-            padding: 32px;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        .args-intro {
-            margin-bottom: 32px;
-        }
-        .args-intro h2 {
-            font-size: 28px;
-            font-weight: 800;
-            color: var(--navy);
-            margin-bottom: 8px;
-        }
-        .args-intro p {
-            font-size: 15px;
-            color: var(--text-muted);
-            line-height: 1.6;
-            max-width: 700px;
-        }
-        .arg-cards {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 24px;
-        }
-        .arg-card {
-            background: var(--card);
-            border-radius: var(--radius);
-            padding: 28px;
-            box-shadow: var(--shadow);
-            border: 1px solid var(--border);
-            border-left: 4px solid var(--navy);
-            transition: all 0.3s;
-        }
-        .arg-card:hover {
-            box-shadow: var(--shadow-lg);
-            transform: translateY(-2px);
-        }
-        .arg-card:nth-child(2) { border-left-color: var(--teal); }
-        .arg-card:nth-child(3) { border-left-color: var(--green); }
-        .arg-card:nth-child(4) { border-left-color: var(--bpost-red); }
-        .arg-card:nth-child(5) { border-left-color: var(--orange); }
-        .arg-card:nth-child(6) { border-left-color: var(--navy-light); }
-        .arg-number {
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--text-light);
-            margin-bottom: 8px;
-        }
-        .arg-card-title {
-            font-size: 18px;
-            font-weight: 700;
-            color: var(--text);
-            margin-bottom: 10px;
-        }
-        .arg-card-text {
-            font-size: 14px;
-            color: var(--text-muted);
-            line-height: 1.6;
-        }
-        .arg-stat {
-            margin-top: 14px;
-            padding-top: 14px;
-            border-top: 1px solid var(--border);
-            font-size: 24px;
-            font-weight: 800;
-            color: var(--navy);
-        }
-        .arg-stat span {
-            font-size: 13px;
-            font-weight: 500;
-            color: var(--text-muted);
-        }
-
-        /* Animations */
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-in {
-            animation: fadeInUp 0.5s ease-out forwards;
-            opacity: 0;
-        }
-        .animate-in:nth-child(1) { animation-delay: 0.05s; }
-        .animate-in:nth-child(2) { animation-delay: 0.1s; }
-        .animate-in:nth-child(3) { animation-delay: 0.15s; }
-        .animate-in:nth-child(4) { animation-delay: 0.2s; }
 
         /* Responsive */
-        @media (max-width: 1200px) {
-            .kpi-grid { grid-template-columns: repeat(2, 1fr); }
-            .charts-row { grid-template-columns: 1fr; }
-            .impact-grid { grid-template-columns: repeat(2, 1fr); }
+        @media (max-width: 1024px) {
+            .hero-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .hero-visual {
+                height: 300px;
+            }
+            
+            .hero-text h1 {
+                font-size: 4.5rem;
+            }
+            
+            .process-grid,
+            .advantages-grid,
+            .pricing-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            #use-cases > div > div {
+                grid-template-columns: 1fr !important;
+            }
+            
+            .about-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .footer-content {
+                grid-template-columns: 1fr 1fr;
+            }
         }
+
         @media (max-width: 768px) {
-            .kpi-grid { grid-template-columns: 1fr; }
-            .impact-grid { grid-template-columns: 1fr; }
-            .arg-cards { grid-template-columns: 1fr; }
-            .map-sidebar { width: 100%; height: 300px; }
-            .map-layout { flex-direction: column; }
-            .header-actions { display: none; }
+            .nav {
+                display: none;
+            }
+            
+            .hero-text h1 {
+                font-size: 3rem;
+            }
+            
+            .section-title {
+                font-size: 2.5rem;
+            }
+            
+            .hero-stats {
+                grid-template-columns: 1fr;
+            }
+            
+            .footer-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .footer-bottom {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
         }
-
-        /* Scrollbar */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-
-        /* Commune scope badge */
-        .scope-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: rgba(255,255,255,0.15);
-            border: 1px solid rgba(255,255,255,0.3);
-            border-radius: 20px;
-            padding: 5px 14px;
-            font-size: 12px;
-            font-weight: 600;
-            color: white;
-            letter-spacing: 0.3px;
-        }
-        .scope-badge .scope-close {
-            cursor: pointer;
-            opacity: 0.7;
-            font-size: 14px;
-            line-height: 1;
-            margin-left: 2px;
-        }
-        .scope-badge .scope-close:hover { opacity: 1; }
-        .breadcrumb {
-            padding: 8px 32px;
-            font-size: 12px;
-            color: var(--text-muted);
-            background: #f1f5f9;
-            border-bottom: 1px solid var(--border);
-        }
-        .breadcrumb a { color: var(--navy); text-decoration: none; font-weight: 500; }
-        .breadcrumb a:hover { text-decoration: underline; }
-        .breadcrumb span { margin: 0 6px; color: var(--text-light); }
-
-        /* Demo badge */
-        .demo-badge {
-            position: fixed;
-            bottom: 16px;
-            right: 16px;
-            background: var(--navy);
-            color: white;
-            padding: 6px 14px;
-            border-radius: 6px;
-            font-size: 11px;
-            font-weight: 600;
-            opacity: 0.7;
-            z-index: 9999;
-            letter-spacing: 0.5px;
-        }
-
-        /* Commune selector in admin */
-        .commune-selector {
-            padding: 10px 14px;
-            border: 1.5px solid rgba(255,255,255,0.3);
-            border-radius: 8px;
-            font-size: 13px;
-            font-family: inherit;
-            background: rgba(255,255,255,0.1);
-            color: white;
-            cursor: pointer;
-            outline: none;
-        }
-        .commune-selector option { color: var(--text); background: white; }
-        .commune-selector:focus { border-color: rgba(255,255,255,0.6); }
-
-        /* Commune boundary on map */
-        .commune-boundary-label {
-            background: none !important;
-            border: none !important;
-            box-shadow: none !important;
-            font-size: 13px;
-            font-weight: 700;
-            color: var(--navy);
-            text-shadow: 0 0 4px white, 0 0 4px white;
-        }
-
-        /* Select all / deselect */
-        .filter-actions {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 8px;
-        }
-        .filter-btn {
-            font-size: 11px;
-            color: var(--navy);
-            cursor: pointer;
-            background: none;
-            border: none;
-            font-weight: 600;
-            padding: 2px 0;
-        }
-        .filter-btn:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
-    <!-- Header -->
-    <div class="header">
-        <div class="header-inner">
-            <div class="header-left">
-                <div class="logo-box">bpost</div>
-                <div class="header-title">
-                    <h1 id="headerTitle">Bbox Brussels Dashboard</h1>
-                    <p id="headerSubtitle">Analyse des propriétés régionales — Inventaire 2024</p>
-                </div>
-            </div>
-            <div class="header-actions">
-                <span id="scopeBadge" style="display:none;"></span>
-                <select class="commune-selector" id="communeSelector" onchange="navigateToCommune(this.value)">
-                    <option value="">Toutes les communes</option>
-                </select>
-                <a href="/api/download/excel" class="btn btn-white">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                    Télécharger Excel
-                </a>
-                <button class="btn btn-outline" onclick="window.print()">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-                    Imprimer
-                </button>
-            </div>
-        </div>
-        <div class="nav-tabs">
-            <button class="nav-tab active" data-tab="overview">Vue d'ensemble</button>
-            <button class="nav-tab" data-tab="map">Carte interactive</button>
-            <button class="nav-tab" data-tab="data">Données complètes</button>
-            <button class="nav-tab" data-tab="arguments">Arguments clés</button>
-        </div>
-    </div>
-    <div class="breadcrumb" id="breadcrumb" style="display:none;"></div>
+    <div class="bg-grid"></div>
 
-    <!-- OVERVIEW TAB -->
-    <div id="tab-overview" class="tab-panel active">
-        <div class="overview-hero">
-            <h2 class="hero-title">579 propriétés analysées</h2>
-            <p class="hero-subtitle">Analyse complète de l'inventaire 2024 des propriétés de la Région de Bruxelles-Capitale pour l'implantation de Bbox bpost.</p>
+    <header>
+        <div class="logo">
+            <img src="sprint-ai-logo.png" alt="Sprint AI - Accelerating AI Innovation" onerror="this.style.display='none'; this.parentElement.innerHTML='<span class=\'logo-sprint\'>SPRINT</span><span class=\'logo-ai\'>AI</span>';">
         </div>
+        <nav class="nav">
+            <a href="#use-cases">What We Build</a>
+            <a href="#process">Process</a>
+            <a href="#advantages">Why Us</a>
+            <a href="#pricing">Pricing</a>
+            <a href="#about">About</a>
+            <a href="/cdn-cgi/l/email-protection#a5d1ccc8e5d1d7c4cccbcac3d1cdcad0c2cdd1d68bc7c0" class="cta-button">Get Started</a>
+        </nav>
+    </header>
 
-        <div class="kpi-grid">
-            <div class="kpi-card navy animate-in">
-                <div class="kpi-label">Propriétés analysées</div>
-                <div class="kpi-value" data-count="579">0</div>
-                <div class="kpi-detail">Réparties sur 19 communes</div>
-            </div>
-            <div class="kpi-card green animate-in">
-                <div class="kpi-label">Directement réalisable</div>
-                <div class="kpi-value" data-count="191">0</div>
-                <div class="kpi-detail">33% de l'inventaire total</div>
-            </div>
-            <div class="kpi-card orange animate-in">
-                <div class="kpi-label">À vérifier sur site</div>
-                <div class="kpi-value" data-count="231">0</div>
-                <div class="kpi-detail">Potentiel supplémentaire de 40%</div>
-            </div>
-            <div class="kpi-card teal animate-in">
-                <div class="kpi-label">Couverture totale potentielle</div>
-                <div class="kpi-value" data-count="73" data-suffix="%">0%</div>
-                <div class="kpi-detail">422 sites possibles sur 579</div>
-            </div>
-        </div>
-
-        <div class="charts-row">
-            <div class="chart-card animate-in">
-                <div class="chart-title">Répartition par faisabilité</div>
-                <div class="chart-subtitle">Analyse technique de chaque propriété</div>
-                <div class="chart-container"><canvas id="feasibilityChart"></canvas></div>
-            </div>
-            <div class="chart-card animate-in">
-                <div class="chart-title">Top 10 communes par potentiel</div>
-                <div class="chart-subtitle">Nombre de sites réalisables ou à vérifier</div>
-                <div class="chart-container"><canvas id="communeChart"></canvas></div>
-            </div>
-        </div>
-
-        <div class="impact-section">
-            <div class="impact-title">Impact estimé pour Bruxelles</div>
-            <div class="impact-grid">
-                <div class="impact-card animate-in">
-                    <div class="impact-icon" style="background:#dcfce7;">🚗</div>
-                    <div class="impact-stat" style="color:var(--green);">-30%</div>
-                    <div class="impact-label">Réduction du trafic lié aux livraisons</div>
-                    <div class="impact-desc">Moins de véhicules de livraison dans les rues bruxelloises grâce à la consolidation des colis</div>
-                </div>
-                <div class="impact-card animate-in">
-                    <div class="impact-icon" style="background:#e0f2fe;">🌍</div>
-                    <div class="impact-stat" style="color:var(--teal);">-55%</div>
-                    <div class="impact-label">Réduction CO₂ par colis</div>
-                    <div class="impact-desc">Empreinte carbone réduite par le regroupement intelligent des livraisons en un point unique</div>
-                </div>
-                <div class="impact-card animate-in">
-                    <div class="impact-icon" style="background:#fef3c7;">⏱️</div>
-                    <div class="impact-stat" style="color:var(--orange);">146h</div>
-                    <div class="impact-label">Heures perdues par conducteur/an</div>
-                    <div class="impact-desc">Bruxelles est la 4ème ville la plus congestionnée d'Europe — chaque Bbox réduit cette pression</div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- MAP TAB -->
-    <div id="tab-map" class="tab-panel">
-        <div class="map-layout">
-            <div class="map-sidebar">
-                <div class="sidebar-section">
-                    <div class="sidebar-title">Recherche</div>
-                    <input type="text" class="search-input" id="mapSearch" placeholder="Adresse, commune, cadastral...">
-                </div>
-                <div class="sidebar-section">
-                    <div class="sidebar-title">Faisabilité</div>
-                    <div id="statusFilters"></div>
-                </div>
-                <div class="sidebar-section">
-                    <div class="sidebar-title">Communes</div>
-                    <div class="filter-actions">
-                        <button class="filter-btn" onclick="toggleAllCommunes(true)">Tout sélectionner</button>
-                        <span style="color:#cbd5e1">|</span>
-                        <button class="filter-btn" onclick="toggleAllCommunes(false)">Tout désélectionner</button>
+    <section class="hero">
+        <div class="hero-content">
+            <div class="hero-text">
+                <h1>
+                    <span class="highlight">AI PROTOTYPES</span>
+                    IN WEEKS,
+                    <span class="highlight-2">NOT MONTHS</span>
+                </h1>
+                <p class="hero-subtitle">
+                    AI prototypes for your products + AI automation for your internal processes. 
+                    Built by an MBA who codes. Delivered at championship speed.
+                </p>
+                
+                <div class="hero-stats">
+                    <div class="stat">
+                        <div class="stat-number">3-6</div>
+                        <div class="stat-label">Weeks to Launch</div>
                     </div>
-                    <div class="checkbox-list" id="communeFilters"></div>
+                    <div class="stat">
+                        <div class="stat-number">21</div>
+                        <div class="stat-label">Apps Shipped</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number">4x</div>
+                        <div class="stat-label">Faster Than Agencies</div>
+                    </div>
+                </div>
+
+                <div class="hero-ctas">
+                    <a href="/cdn-cgi/l/email-protection#e6928f8ba69294878f888980928e8993818e9295c88483" class="btn-primary">Start Your Sprint →</a>
+                    <a href="#process" class="btn-secondary">See How It Works</a>
                 </div>
             </div>
-            <div class="map-container">
-                <div id="map"></div>
-                <div class="map-stats-overlay" id="mapStats">
-                    <div class="map-stat">
-                        <div class="map-stat-value" id="mapShown">0</div>
-                        <div class="map-stat-label">Affichés</div>
+
+            <div class="hero-visual">
+                <div class="sprint-track">
+                    <div class="track-lane"></div>
+                    <div class="track-lane"></div>
+                    <div class="track-lane"></div>
+                    <div class="track-lane"></div>
+                </div>
+                <div class="runner-icon">⚡</div>
+            </div>
+        </div>
+    </section>
+
+    <section id="process">
+        <h2 class="section-title">HOW WE SPRINT</h2>
+        <p class="section-subtitle">
+            From idea to working prototype in 3 phases. No waste. No delays. Just results.
+        </p>
+
+        <div class="process-grid">
+            <div class="process-card">
+                <div class="process-number">01</div>
+                <h3>Discovery & Scoping</h3>
+                <p>
+                    We understand your business problem, assess AI feasibility, and create 
+                    a detailed technical architecture. You get a fixed-price quote and 
+                    clickable mockups before we write any code.
+                </p>
+                <div class="process-meta">
+                    <div class="meta-item">
+                        <span class="meta-label">Timeline</span>
+                        <span class="meta-value">1-2 WEEKS</span>
                     </div>
-                    <div class="map-stat">
-                        <div class="map-stat-value" style="color:var(--green);" id="mapOui">0</div>
-                        <div class="map-stat-label">Possible</div>
+                    <div class="meta-item">
+                        <span class="meta-label">Investment</span>
+                        <span class="meta-value">€8K-15K</span>
                     </div>
-                    <div class="map-stat">
-                        <div class="map-stat-value" style="color:var(--orange);" id="mapVerifier">0</div>
-                        <div class="map-stat-label">À vérifier</div>
+                </div>
+            </div>
+
+            <div class="process-card">
+                <div class="process-number">02</div>
+                <h3>Prototype Development</h3>
+                <p>
+                    We build a working prototype with AI integration, host it on our 
+                    infrastructure, and let you test with real users. Two rounds of revisions 
+                    included. No surprises.
+                </p>
+                <div class="process-meta">
+                    <div class="meta-item">
+                        <span class="meta-label">Timeline</span>
+                        <span class="meta-value">3-6 WEEKS</span>
                     </div>
-                    <div class="map-stat">
-                        <div class="map-stat-value" style="color:var(--red-muted);" id="mapNon">0</div>
-                        <div class="map-stat-label">Non</div>
+                    <div class="meta-item">
+                        <span class="meta-label">Investment</span>
+                        <span class="meta-value">€25K-75K</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="process-card">
+                <div class="process-number">03</div>
+                <h3>Iterate & Scale</h3>
+                <p>
+                    Based on user feedback, we refine features, optimize performance, and 
+                    integrate with your existing tools. Then we convert to a maintenance 
+                    contract or hand it off completely.
+                </p>
+                <div class="process-meta">
+                    <div class="meta-item">
+                        <span class="meta-label">Timeline</span>
+                        <span class="meta-value">ONGOING</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">Investment</span>
+                        <span class="meta-value">€3K-8K/MO</span>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
+    </section>
 
-    <!-- DATA TAB -->
-    <div id="tab-data" class="tab-panel">
-        <div class="data-panel">
-            <div class="data-header">
-                <div>
-                    <h2 style="font-size:20px;font-weight:700;color:var(--navy);">Base de données complète</h2>
-                    <p style="font-size:13px;color:var(--text-muted);margin-top:2px;" id="dataSubtitle">579 propriétés — cliquez sur un en-tête pour trier</p>
+    <section id="use-cases" style="background: var(--color-charcoal); padding: 6rem 5%;">
+        <div style="max-width: 1400px; margin: 0 auto;">
+            <h2 class="section-title">WHAT WE BUILD</h2>
+            <p class="section-subtitle">
+                Two powerful ways to implement AI in your business.
+            </p>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; margin-top: 3rem;">
+                <!-- External Prototypes -->
+                <div style="background: var(--color-dark); padding: 3rem; border-top: 4px solid var(--color-sprint-blue);">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">🚀</div>
+                    <h3 style="font-family: var(--font-display); font-size: 2rem; margin-bottom: 1rem; color: var(--color-sprint-blue);">EXTERNAL PROTOTYPES</h3>
+                    <p style="color: var(--color-silver); margin-bottom: 2rem; font-size: 1.1rem;">
+                        AI features for your products and customer-facing applications.
+                    </p>
+                    
+                    <div style="margin-bottom: 2rem;">
+                        <div style="color: var(--color-electric); font-weight: 600; margin-bottom: 0.5rem;">Perfect for:</div>
+                        <ul style="list-style: none; color: var(--color-silver);">
+                            <li style="margin-bottom: 0.5rem;">→ Startups validating AI product ideas</li>
+                            <li style="margin-bottom: 0.5rem;">→ Adding AI features to existing products</li>
+                            <li style="margin-bottom: 0.5rem;">→ Beta launches and investor demos</li>
+                            <li style="margin-bottom: 0.5rem;">→ Customer-facing AI chatbots</li>
+                        </ul>
+                    </div>
+
+                    <div style="margin-bottom: 2rem;">
+                        <div style="color: var(--color-electric); font-weight: 600; margin-bottom: 0.5rem;">Examples:</div>
+                        <ul style="list-style: none; color: var(--color-silver);">
+                            <li style="margin-bottom: 0.5rem;">• AI-powered document analysis tools</li>
+                            <li style="margin-bottom: 0.5rem;">• Personalized recommendation engines</li>
+                            <li style="margin-bottom: 0.5rem;">• Intelligent search and discovery</li>
+                            <li style="margin-bottom: 0.5rem;">• Automated content generation</li>
+                        </ul>
+                    </div>
+
+                    <div style="padding: 1rem; background: rgba(0, 102, 255, 0.1); border-left: 3px solid var(--color-sprint-blue);">
+                        <div style="font-family: var(--font-display); font-size: 1.5rem; color: var(--color-electric);">€45K-120K</div>
+                        <div style="color: var(--color-silver); font-size: 0.9rem;">3-8 weeks delivery</div>
+                    </div>
                 </div>
-                <input type="text" class="data-search" id="tableSearch" placeholder="Rechercher dans les données...">
+
+                <!-- Internal Automation -->
+                <div style="background: var(--color-dark); padding: 3rem; border-top: 4px solid var(--color-electric);">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">⚙️</div>
+                    <h3 style="font-family: var(--font-display); font-size: 2rem; margin-bottom: 1rem; color: var(--color-electric);">INTERNAL AUTOMATION</h3>
+                    <p style="color: var(--color-silver); margin-bottom: 2rem; font-size: 1.1rem;">
+                        AI tools that automate internal processes and empower your teams.
+                    </p>
+                    
+                    <div style="margin-bottom: 2rem;">
+                        <div style="color: var(--color-sprint-blue); font-weight: 600; margin-bottom: 0.5rem;">Perfect for:</div>
+                        <ul style="list-style: none; color: var(--color-silver);">
+                            <li style="margin-bottom: 0.5rem;">→ Manufacturing & production teams</li>
+                            <li style="margin-bottom: 0.5rem;">→ Employee support and onboarding</li>
+                            <li style="margin-bottom: 0.5rem;">→ Process automation and efficiency</li>
+                            <li style="margin-bottom: 0.5rem;">→ ROI in 2-4 months guaranteed</li>
+                        </ul>
+                    </div>
+
+                    <div style="margin-bottom: 2rem;">
+                        <div style="color: var(--color-sprint-blue); font-weight: 600; margin-bottom: 0.5rem;">Examples:</div>
+                        <ul style="list-style: none; color: var(--color-silver);">
+                            <li style="margin-bottom: 0.5rem;">• Production line chatbots (SOPs & troubleshooting)</li>
+                            <li style="margin-bottom: 0.5rem;">• Quality control with computer vision</li>
+                            <li style="margin-bottom: 0.5rem;">• HR/IT helpdesk assistants</li>
+                            <li style="margin-bottom: 0.5rem;">• Document processing automation</li>
+                        </ul>
+                    </div>
+
+                    <div style="padding: 1rem; background: rgba(0, 240, 255, 0.1); border-left: 3px solid var(--color-electric);">
+                        <div style="font-family: var(--font-display); font-size: 1.5rem; color: var(--color-sprint-blue);">€45K-75K</div>
+                        <div style="color: var(--color-silver); font-size: 0.9rem;">4-6 weeks delivery + ROI in 2-4 months</div>
+                    </div>
+                </div>
             </div>
-            <div class="data-table-wrapper">
-                <div class="table-scroll">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th data-sort="commune">Commune ↕</th>
-                                <th data-sort="address">Adresse ↕</th>
-                                <th data-sort="description">Description ↕</th>
-                                <th data-sort="superficie">Superficie ↕</th>
-                                <th data-sort="cadastral">Réf. cadastrale ↕</th>
-                                <th data-sort="list">Liste ↕</th>
-                                <th data-sort="status">Bbox ↕</th>
-                                <th data-sort="reason">Motif ↕</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tableBody"></tbody>
-                    </table>
+
+            <div style="text-align: center; margin-top: 3rem; padding: 2rem; background: rgba(0, 102, 255, 0.05); border-radius: 8px;">
+                <div style="font-size: 1.2rem; color: var(--color-white); margin-bottom: 1rem;">
+                    <strong>Real Example:</strong> Production line chatbot saves 30 min/day per operator
                 </div>
-                <div class="table-footer" id="tableFooter">Affichage de 579 propriétés</div>
+                <div style="color: var(--color-silver);">
+                    50 operators × €40/hour × 0.5 hours × 240 days = <span style="color: var(--color-electric); font-weight: 700;">€240K/year saved</span>
+                    <br>
+                    Your investment: €75K | Payback period: <span style="color: var(--color-electric); font-weight: 700;">4 months</span>
+                </div>
             </div>
         </div>
-    </div>
+    </section>
 
-    <!-- ARGUMENTS TAB -->
-    <div id="tab-arguments" class="tab-panel">
-        <div class="args-panel">
-            <div class="args-intro">
-                <h2>Pourquoi implanter des Bbox sur le domaine public?</h2>
-                <p>Six arguments fondamentaux pour convaincre le Gouvernement de la Région de Bruxelles-Capitale de l'intérêt stratégique des consignes à colis bpost.</p>
+    <section id="advantages">
+        <h2 class="section-title">YOUR UNFAIR ADVANTAGES</h2>
+        <p class="section-subtitle">
+            Why companies choose Sprint AI over traditional agencies and offshore dev shops.
+        </p>
+
+        <div class="advantages-grid">
+            <div class="advantage-card">
+                <div class="advantage-icon">⚡</div>
+                <div class="advantage-content">
+                    <h3>Championship Speed</h3>
+                    <p>
+                        3-6 weeks vs 3-6 months. We use AI-assisted development and a library 
+                        of 21 production apps to build faster than anyone else. Former national 
+                        athlete discipline applied to code.
+                    </p>
+                </div>
             </div>
-            <div class="arg-cards">
-                <div class="arg-card animate-in">
-                    <div class="arg-number">Argument 01</div>
-                    <div class="arg-card-title">Service public universel</div>
-                    <div class="arg-card-text">bpost, en tant qu'opérateur postal historique, assure la mission de service public. Les Bbox garantissent un accès équitable à la réception de colis pour tous les Bruxellois — 24h/24, 7j/7, sans discrimination géographique ou sociale.</div>
-                    <div class="arg-stat">24/7 <span>accessibilité garantie</span></div>
+
+            <div class="advantage-card">
+                <div class="advantage-icon">🎯</div>
+                <div class="advantage-content">
+                    <h3>Business-First Thinking</h3>
+                    <p>
+                        MBA founder who speaks C-suite language. We understand ROI, KPIs, and 
+                        business cases. You're not just getting a developer—you're getting a 
+                        strategic partner.
+                    </p>
                 </div>
-                <div class="arg-card animate-in">
-                    <div class="arg-number">Argument 02</div>
-                    <div class="arg-card-title">Réduction drastique du trafic</div>
-                    <div class="arg-card-text">Bruxelles est la 4ème ville la plus congestionnée d'Europe. Chaque Bbox remplace des dizaines de livraisons individuelles par un point de collecte unique, réduisant le nombre de véhicules de livraison de 30% dans les zones desservies.</div>
-                    <div class="arg-stat">-30% <span>véhicules de livraison</span></div>
+            </div>
+
+            <div class="advantage-card">
+                <div class="advantage-icon">🔧</div>
+                <div class="advantage-content">
+                    <h3>Production-Ready Code</h3>
+                    <p>
+                        Not hackathon demos. Real, scalable applications with proper authentication, 
+                        payments, and integrations. Built with React, TypeScript, Node.js, and 
+                        PostgreSQL—the modern stack.
+                    </p>
                 </div>
-                <div class="arg-card animate-in">
-                    <div class="arg-number">Argument 03</div>
-                    <div class="arg-card-title">Impact environnemental majeur</div>
-                    <div class="arg-card-text">Le regroupement intelligent des colis réduit l'empreinte carbone de 55% par livraison. Avec 191 sites directement réalisables, c'est l'équivalent de retirer des centaines de véhicules utilitaires des rues bruxelloises chaque jour.</div>
-                    <div class="arg-stat">-55% <span>CO₂ par colis livré</span></div>
+            </div>
+
+            <div class="advantage-card">
+                <div class="advantage-icon">💰</div>
+                <div class="advantage-content">
+                    <h3>Transparent Pricing</h3>
+                    <p>
+                        Fixed-price packages. No hourly billing surprises. No scope creep. 
+                        You know exactly what you're paying and what you're getting before 
+                        we start.
+                    </p>
                 </div>
-                <div class="arg-card animate-in">
-                    <div class="arg-number">Argument 04</div>
-                    <div class="arg-card-title">Valorisation du patrimoine immobilier</div>
-                    <div class="arg-card-text">Les 579 propriétés régionales analysées incluent de nombreux espaces sous-utilisés. L'implantation d'une Bbox génère un revenu locatif pour la Région tout en transformant des espaces passifs en infrastructure urbaine utile.</div>
-                    <div class="arg-stat">579 <span>propriétés analysées</span></div>
+            </div>
+
+            <div class="advantage-card">
+                <div class="advantage-icon">🤖</div>
+                <div class="advantage-content">
+                    <h3>AI-Native Approach</h3>
+                    <p>
+                        Built with AI, for AI. We use Claude Code and GPT-5 in our own workflow, 
+                        so we know how to implement AI features that actually work. No learning 
+                        curve on your dime.
+                    </p>
                 </div>
-                <div class="arg-card animate-in">
-                    <div class="arg-number">Argument 05</div>
-                    <div class="arg-card-title">Qualité de vie des habitants</div>
-                    <div class="arg-card-text">Fini les livraisons manquées, les avis de passage et les détours au bureau de poste. Les Bbox améliorent le quotidien des 1,2 million de Bruxellois en offrant une solution de retrait flexible à proximité de chez eux.</div>
-                    <div class="arg-stat">1.2M <span>habitants bénéficiaires</span></div>
-                </div>
-                <div class="arg-card animate-in">
-                    <div class="arg-number">Argument 06</div>
-                    <div class="arg-card-title">Position de leader européen</div>
-                    <div class="arg-card-text">Avec 2 500 Bbox déjà déployées en Belgique et une augmentation d'utilisation de 62%, bpost est un pionnier reconnu. Bruxelles peut devenir la capitale européenne de la logistique urbaine durable en partenariat avec bpost.</div>
-                    <div class="arg-stat">+62% <span>croissance d'utilisation</span></div>
+            </div>
+
+            <div class="advantage-card">
+                <div class="advantage-icon">🔄</div>
+                <div class="advantage-content">
+                    <h3>Recurring Revenue Focus</h3>
+                    <p>
+                        Every prototype converts to a maintenance contract. We're invested in 
+                        your long-term success, not just getting paid once. Hosting, updates, 
+                        and ongoing improvements included.
+                    </p>
                 </div>
             </div>
         </div>
-    </div>
+    </section>
 
-    <script>
-    let allProperties = [];
-    let scopedProperties = [];
-    let map, markers = [];
-    let communeBoundary = null;
-    let feasibilityChart = null;
-    let communeChart = null;
+    <section id="pricing">
+        <h2 class="section-title">CHOOSE YOUR SPRINT</h2>
+        <p class="section-subtitle">
+            Fixed-price packages for external prototypes and internal automation. Same speed, same quality.
+        </p>
 
-    // Brussels communes with NIS codes and approximate bounding boxes
-    const COMMUNES = {
-        'anderlecht':           { name: 'Anderlecht',             nis: '21001', bounds: [[50.820, 4.280], [50.870, 4.360]] },
-        'auderghem':            { name: 'Auderghem',              nis: '21002', bounds: [[50.805, 4.410], [50.830, 4.450]] },
-        'berchem-sainte-agathe':{ name: 'Berchem-Sainte-Agathe',  nis: '21003', bounds: [[50.860, 4.280], [50.880, 4.310]] },
-        'bruxelles-ville':      { name: 'Bruxelles-Ville',        nis: '21004', bounds: [[50.830, 4.320], [50.870, 4.400]] },
-        'etterbeek':            { name: 'Etterbeek',              nis: '21005', bounds: [[50.825, 4.370], [50.845, 4.405]] },
-        'evere':                { name: 'Evere',                  nis: '21006', bounds: [[50.860, 4.370], [50.885, 4.410]] },
-        'forest':               { name: 'Forest',                 nis: '21007', bounds: [[50.800, 4.310], [50.825, 4.355]] },
-        'ganshoren':            { name: 'Ganshoren',              nis: '21008', bounds: [[50.865, 4.295], [50.880, 4.325]] },
-        'ixelles':              { name: 'Ixelles',                nis: '21009', bounds: [[50.815, 4.350], [50.840, 4.400]] },
-        'jette':                { name: 'Jette',                  nis: '21010', bounds: [[50.870, 4.310], [50.895, 4.345]] },
-        'koekelberg':           { name: 'Koekelberg',             nis: '21011', bounds: [[50.855, 4.320], [50.870, 4.340]] },
-        'molenbeek':            { name: 'Molenbeek-Saint-Jean',   nis: '21012', bounds: [[50.845, 4.300], [50.870, 4.340]] },
-        'saint-gilles':         { name: 'Saint-Gilles',           nis: '21013', bounds: [[50.822, 4.335], [50.840, 4.360]] },
-        'saint-josse':          { name: 'Saint-Josse-ten-Noode',  nis: '21014', bounds: [[50.850, 4.365], [50.860, 4.385]] },
-        'schaerbeek':           { name: 'Schaerbeek',             nis: '21015', bounds: [[50.850, 4.365], [50.880, 4.410]] },
-        'uccle':                { name: 'Uccle',                  nis: '21016', bounds: [[50.780, 4.320], [50.820, 4.380]] },
-        'watermael-boitsfort':  { name: 'Watermael-Boitsfort',    nis: '21017', bounds: [[50.790, 4.390], [50.815, 4.430]] },
-        'woluwe-saint-lambert': { name: 'Woluwe-Saint-Lambert',   nis: '21018', bounds: [[50.835, 4.405], [50.860, 4.445]] },
-        'woluwe-saint-pierre':  { name: 'Woluwe-Saint-Pierre',   nis: '21019', bounds: [[50.825, 4.420], [50.850, 4.460]] }
-    };
+        <div class="pricing-grid">
+            <div class="pricing-card">
+                <div class="pricing-name">RAPID</div>
+                <div class="pricing-tagline">Proof of concept, fast</div>
+                <div class="pricing-amount">€45K</div>
+                <div class="pricing-period">3 weeks delivery</div>
+                <ul class="pricing-features">
+                    <li>Single AI use case</li>
+                    <li>Basic UI/UX</li>
+                    <li>Functional MVP</li>
+                    <li>User testing (10-20 users)</li>
+                    <li>Documentation included</li>
+                    <li>3 months hosting free</li>
+                </ul>
+                <button class="pricing-cta" onclick="location.href='mailto:tim@trainofthoughts.be?subject=Rapid Sprint Inquiry'">Get Started</button>
+            </div>
 
-    // Demo mode placeholder values for empty fields
-    const DEMO_PLACEHOLDERS = {
-        description: ['Terrain à bâtir', 'Espace vert communal', 'Parking public', 'Voirie - Espace Public', 'Local commercial vacant'],
-        comments: ['Accès direct voirie', 'Proximité transport en commun', 'Zone résidentielle dense', 'Bonne visibilité piétonne'],
-        reason: ['Terrain accessible', 'Espace public disponible', 'Site stratégique identifié']
-    };
+            <div class="pricing-card featured">
+                <div class="pricing-name">PRODUCTION</div>
+                <div class="pricing-tagline">Ready for real users</div>
+                <div class="pricing-amount">€75K</div>
+                <div class="pricing-period">5 weeks delivery</div>
+                <ul class="pricing-features">
+                    <li>Multiple AI features</li>
+                    <li>Polished UI/UX</li>
+                    <li>2-3 system integrations</li>
+                    <li>User testing (50+ users)</li>
+                    <li>Complete documentation</li>
+                    <li>6 months hosting + support</li>
+                    <li>2 iteration rounds</li>
+                </ul>
+                <button class="pricing-cta" onclick="location.href='mailto:tim@trainofthoughts.be?subject=Production Sprint Inquiry'">Get Started</button>
+            </div>
 
-    // Parse URL parameters
-    function getUrlParams() {
-        const params = new URLSearchParams(window.location.search);
-        return {
-            commune: (params.get('commune') || '').toLowerCase().trim(),
-            demo: params.get('demo') === 'true'
-        };
-    }
+            <div class="pricing-card">
+                <div class="pricing-name">ENTERPRISE</div>
+                <div class="pricing-tagline">Mission-critical systems</div>
+                <div class="pricing-amount">€120K+</div>
+                <div class="pricing-period">6-8 weeks delivery</div>
+                <ul class="pricing-features">
+                    <li>Complex workflows</li>
+                    <li>Multiple integrations</li>
+                    <li>Security/compliance</li>
+                    <li>White-glove service</li>
+                    <li>Dedicated support</li>
+                    <li>12 months hosting included</li>
+                    <li>Development retainer option</li>
+                </ul>
+                <button class="pricing-cta" onclick="location.href='mailto:tim@trainofthoughts.be?subject=Enterprise Sprint Inquiry'">Let's Talk</button>
+            </div>
+        </div>
+    </section>
 
-    // Find commune config by name or NIS code
-    function findCommune(param) {
-        if (!param) return null;
-        // Direct key match
-        if (COMMUNES[param]) return COMMUNES[param];
-        // NIS code match
-        for (const key in COMMUNES) {
-            if (COMMUNES[key].nis === param) return COMMUNES[key];
-        }
-        // Fuzzy name match (case-insensitive, match commune name from data)
-        const lower = param.toLowerCase();
-        for (const key in COMMUNES) {
-            if (COMMUNES[key].name.toLowerCase() === lower) return COMMUNES[key];
-            if (key.includes(lower) || lower.includes(key)) return COMMUNES[key];
-        }
-        return null;
-    }
+    <section id="about">
+        <div class="about-content">
+            <div class="about-image">
+                🏃‍♂️
+            </div>
+            <div class="about-text">
+                <h2>Built by an MBA Who Codes</h2>
+                <p>
+                    Sprint AI is founded by Tim, a former national 4x400m relay runner, current 
+                    Thai boxer, and MBA graduate who taught himself to code using AI. He's built 
+                    21 production applications using AI-assisted development—proving that speed 
+                    and quality aren't mutually exclusive.
+                </p>
+                <p>
+                    Sprint AI delivers two core services: external AI prototypes for your products, 
+                    and internal AI automation for your teams. Whether you're validating a new 
+                    product idea or saving €200k/year by automating manual processes, we build 
+                    it in weeks, not months.
+                </p>
+                <p>
+                    The philosophy: Bring the same intensity to business that athletes bring to 
+                    competition. No excuses. No delays. Just execution.
+                </p>
 
-    // Build a lookup from actual data commune names to COMMUNES keys
-    function buildCommuneNameMap(data) {
-        const dataNames = [...new Set(data.map(p => p.commune))];
-        const nameMap = {};
-        dataNames.forEach(dName => {
-            const lower = dName.toLowerCase();
-            for (const key in COMMUNES) {
-                const cName = COMMUNES[key].name.toLowerCase();
-                if (lower === cName || cName.includes(lower) || lower.includes(cName)) {
-                    nameMap[dName] = key;
-                    break;
+                <div class="credentials">
+                    <div class="credential">
+                        <div class="credential-title">MBA</div>
+                        <div class="credential-desc">Business Strategy</div>
+                    </div>
+                    <div class="credential">
+                        <div class="credential-title">21 APPS</div>
+                        <div class="credential-desc">Production Portfolio</div>
+                    </div>
+                    <div class="credential">
+                        <div class="credential-title">NATIONAL</div>
+                        <div class="credential-desc">4x400m Relay</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta-section">
+        <h2>READY TO SPRINT?</h2>
+        <p>
+            Whether you need an AI prototype for your product or want to automate internal processes, 
+            we deliver in weeks with clear ROI. First discovery call is free.
+        </p>
+        <a href="/cdn-cgi/l/email-protection#83f7eaeec3f7f1e2eaedece5f7ebecf6e4ebf7f0ade1e6bcf0f6e1e9e6e0f7bed0f3f1eaedf7a3c2caa3aea3cfe6f7a4f0a3d7e2efe8" class="btn-primary">
+            Book Your Discovery Call
+        </a>
+    </section>
+
+    <footer>
+        <div class="footer-content">
+            <div>
+                <div class="footer-brand">
+                    <img src="sprint-ai-logo.png" alt="Sprint AI" onerror="this.style.display='none'; this.parentElement.innerHTML='<span style=\'color: #0066FF;\'>SPRINT</span><span style=\'color: #00F0FF;\'>AI</span>';">
+                </div>
+                <p class="footer-tagline">
+                    AI prototypes delivered at championship speed. Based in Belgium, serving Europe and beyond.
+                </p>
+            </div>
+
+            <div class="footer-section">
+                <h4>Services</h4>
+                <ul>
+                    <li><a href="#use-cases">External Prototypes</a></li>
+                    <li><a href="#use-cases">Internal Automation</a></li>
+                    <li><a href="#process">Our Process</a></li>
+                    <li><a href="#process">Maintenance & Support</a></li>
+                    <li><a href="#pricing">Pricing</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-section">
+                <h4>Company</h4>
+                <ul>
+                    <li><a href="#about">About</a></li>
+                    <li><a href="https://trainofthoughts.be" target="_blank">Train of Thoughts</a></li>
+                    <li><a href="/cdn-cgi/l/email-protection#04706d69447076656d6a6b62706c6b71636c70772a6661">Contact</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-section">
+                <h4>Connect</h4>
+                <ul>
+                    <li><a href="https://linkedin.com/in/tim-verstraete" target="_blank">LinkedIn</a></li>
+                    <li><a href="/cdn-cgi/l/email-protection#7d0914103d090f1c1413121b091512081a15090e531f18">Email</a></li>
+                    <li><a href="tel:+32123456789">Phone</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <div>© 2025 Sprint AI. All rights reserved.</div>
+            <div>Built with ⚡ in Belgium</div>
+        </div>
+    </footer>
+
+    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
                 }
-            }
-        });
-        return nameMap;
-    }
-
-    // Match a property to a commune config
-    function matchPropertyToCommune(property, communeConfig) {
-        if (!communeConfig || !property.commune) return false;
-        const pCommune = property.commune.toLowerCase();
-        const cName = communeConfig.name.toLowerCase();
-        return pCommune === cName || cName.includes(pCommune) || pCommune.includes(cName);
-    }
-
-    // Apply demo mode placeholders
-    function applyDemoMode(data) {
-        return data.map((p, i) => {
-            const filled = { ...p };
-            if (!filled.description || filled.description.trim() === '') {
-                filled.description = DEMO_PLACEHOLDERS.description[i % DEMO_PLACEHOLDERS.description.length];
-            }
-            if (!filled.comments || filled.comments.trim() === '') {
-                filled.comments = DEMO_PLACEHOLDERS.comments[i % DEMO_PLACEHOLDERS.comments.length];
-            }
-            if (!filled.reason || filled.reason.trim() === '') {
-                filled.reason = DEMO_PLACEHOLDERS.reason[i % DEMO_PLACEHOLDERS.reason.length];
-            }
-            return filled;
-        });
-    }
-
-    // Navigate to commune
-    function navigateToCommune(value) {
-        if (!value) {
-            window.location.href = window.location.pathname;
-        } else {
-            window.location.href = window.location.pathname + '?commune=' + encodeURIComponent(value);
-        }
-    }
-
-    // Exit scope
-    function exitScope() {
-        window.location.href = window.location.pathname;
-    }
-
-    // Populate commune selector
-    function populateCommuneSelector() {
-        const select = document.getElementById('communeSelector');
-        const sortedCommunes = Object.entries(COMMUNES).sort((a, b) => a[1].name.localeCompare(b[1].name));
-        sortedCommunes.forEach(([key, c]) => {
-            const opt = document.createElement('option');
-            opt.value = key;
-            opt.textContent = `${c.name} (${c.nis})`;
-            select.appendChild(opt);
-        });
-    }
-
-    // Update UI for commune scope
-    function applyScopeUI(communeConfig, isDemo) {
-        const titleEl = document.getElementById('headerTitle');
-        const subtitleEl = document.getElementById('headerSubtitle');
-        const badgeEl = document.getElementById('scopeBadge');
-        const breadcrumbEl = document.getElementById('breadcrumb');
-        const selectorEl = document.getElementById('communeSelector');
-
-        if (communeConfig) {
-            // Update header
-            titleEl.textContent = `${communeConfig.name} — Patrimoine Immobilier`;
-            subtitleEl.textContent = `Analyse Bbox — Commune de ${communeConfig.name}`;
-            document.title = `bpost Bbox | ${communeConfig.name}`;
-
-            // Show scope badge
-            badgeEl.innerHTML = `<span class="scope-badge">Vue: ${communeConfig.name} <span class="scope-close" onclick="exitScope()" title="Retour vue régionale">✕</span></span>`;
-            badgeEl.style.display = 'inline-flex';
-
-            // Show breadcrumb
-            breadcrumbEl.innerHTML = `<a href="${window.location.pathname}">Région</a><span>›</span>${communeConfig.name}`;
-            breadcrumbEl.style.display = 'block';
-
-            // Set selector value
-            for (const key in COMMUNES) {
-                if (COMMUNES[key].name === communeConfig.name) {
-                    selectorEl.value = key;
-                    break;
-                }
-            }
-        }
-
-        // Demo mode badge
-        if (isDemo) {
-            const demoBadge = document.createElement('div');
-            demoBadge.className = 'demo-badge';
-            demoBadge.textContent = 'Mode démo';
-            document.body.appendChild(demoBadge);
-        }
-    }
-
-    // Update KPI cards dynamically
-    function updateKPIs(data) {
-        const total = data.length;
-        const oui = data.filter(p => p.status === 'Oui').length;
-        const verifier = data.filter(p => p.status === 'À vérifier').length;
-        const potentiel = oui + verifier;
-        const pct = total > 0 ? Math.round((potentiel / total) * 100) : 0;
-
-        const kpiCards = document.querySelectorAll('.kpi-card');
-        // Card 0: Total
-        kpiCards[0].querySelector('.kpi-value').dataset.count = total;
-        kpiCards[0].querySelector('.kpi-detail').textContent = scopedCommune
-            ? `Commune de ${scopedCommune.name}`
-            : `Réparties sur 19 communes`;
-        // Card 1: Oui
-        kpiCards[1].querySelector('.kpi-value').dataset.count = oui;
-        kpiCards[1].querySelector('.kpi-detail').textContent = `${total > 0 ? Math.round((oui/total)*100) : 0}% de l'inventaire${scopedCommune ? ' communal' : ' total'}`;
-        // Card 2: À vérifier
-        kpiCards[2].querySelector('.kpi-value').dataset.count = verifier;
-        kpiCards[2].querySelector('.kpi-detail').textContent = `Potentiel supplémentaire de ${total > 0 ? Math.round((verifier/total)*100) : 0}%`;
-        // Card 3: Coverage
-        kpiCards[3].querySelector('.kpi-value').dataset.count = pct;
-        kpiCards[3].querySelector('.kpi-detail').textContent = `${potentiel} sites possibles sur ${total}`;
-
-        // Update hero title
-        document.querySelector('.hero-title').textContent = `${total} propriétés analysées`;
-        if (scopedCommune) {
-            document.querySelector('.hero-subtitle').textContent =
-                `Analyse de l'inventaire 2024 des propriétés de ${scopedCommune.name} pour l'implantation de Bbox bpost.`;
-        }
-    }
-
-    let scopedCommune = null;
-
-    // Load data
-    fetch('/api/properties')
-        .then(r => r.json())
-        .then(data => {
-            const params = getUrlParams();
-            scopedCommune = findCommune(params.commune);
-
-            allProperties = data;
-
-            // Apply commune scope
-            if (scopedCommune) {
-                scopedProperties = data.filter(p => matchPropertyToCommune(p, scopedCommune));
-            } else {
-                scopedProperties = data;
-            }
-
-            // Apply demo mode
-            if (params.demo) {
-                scopedProperties = applyDemoMode(scopedProperties);
-            }
-
-            populateCommuneSelector();
-            applyScopeUI(scopedCommune, params.demo);
-            updateKPIs(scopedProperties);
-            initOverview(scopedProperties);
-            initMap();
-            initTable();
-            initFilters();
-            animateCounters();
-        });
-
-    // Tab navigation
-    document.querySelectorAll('.nav-tab').forEach(tab => {
-        tab.addEventListener('click', () => {
-            document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-            tab.classList.add('active');
-            document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
-            if (tab.dataset.tab === 'map' && map) {
-                setTimeout(() => map.invalidateSize(), 100);
-            }
-        });
-    });
-
-    // Animated counters
-    function animateCounters() {
-        document.querySelectorAll('[data-count]').forEach(el => {
-            const target = parseInt(el.dataset.count);
-            const suffix = el.dataset.suffix || '';
-            const duration = 1500;
-            const start = Date.now();
-            const tick = () => {
-                const elapsed = Date.now() - start;
-                const progress = Math.min(elapsed / duration, 1);
-                const eased = 1 - Math.pow(1 - progress, 3);
-                el.textContent = Math.round(target * eased) + suffix;
-                if (progress < 1) requestAnimationFrame(tick);
-            };
-            tick();
-        });
-    }
-
-    // Overview charts
-    function initOverview(data) {
-        // Feasibility doughnut
-        const feasCounts = {};
-        data.forEach(p => {
-            const f = p.feasibility || 'Inconnu';
-            feasCounts[f] = (feasCounts[f] || 0) + 1;
-        });
-
-        if (feasibilityChart) feasibilityChart.destroy();
-        feasibilityChart = new Chart(document.getElementById('feasibilityChart'), {
-            type: 'doughnut',
-            data: {
-                labels: Object.keys(feasCounts),
-                datasets: [{
-                    data: Object.values(feasCounts),
-                    backgroundColor: ['#059669', '#D97706', '#94A3B8', '#64748B', '#CBD5E1', '#E2E8F0'],
-                    borderWidth: 2,
-                    borderColor: '#fff'
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                cutout: '55%',
-                plugins: {
-                    legend: {
-                        position: 'right',
-                        labels: { padding: 14, font: { size: 12, family: 'Inter' }, usePointStyle: true, pointStyleWidth: 10 }
-                    }
-                }
-            }
-        });
-
-        // Commune bar chart
-        const communeCounts = {};
-        data.forEach(p => {
-            if (p.status === 'Oui' || p.status === 'À vérifier') {
-                communeCounts[p.commune] = (communeCounts[p.commune] || 0) + 1;
-            }
-        });
-        const sorted = Object.entries(communeCounts).sort((a, b) => b[1] - a[1]).slice(0, 10);
-
-        if (communeChart) communeChart.destroy();
-        communeChart = new Chart(document.getElementById('communeChart'), {
-            type: 'bar',
-            data: {
-                labels: sorted.map(s => s[0]),
-                datasets: [{
-                    label: 'Sites potentiels',
-                    data: sorted.map(s => s[1]),
-                    backgroundColor: '#1B3A5C',
-                    borderRadius: 6,
-                    barThickness: 24
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                indexAxis: 'y',
-                plugins: { legend: { display: false } },
-                scales: {
-                    x: { grid: { color: '#E2E8F0' }, ticks: { font: { size: 11, family: 'Inter' } } },
-                    y: { grid: { display: false }, ticks: { font: { size: 12, family: 'Inter' } } }
-                }
-            }
-        });
-    }
-
-    // Map
-    function initMap() {
-        map = L.map('map').setView([50.847, 4.357], 12);
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; OpenStreetMap &copy; CARTO',
-            maxZoom: 19
-        }).addTo(map);
-
-        // If scoped, fit bounds and show boundary
-        if (scopedCommune) {
-            const bounds = L.latLngBounds(scopedCommune.bounds);
-            map.fitBounds(bounds, { padding: [30, 30] });
-
-            // Draw commune boundary rectangle
-            communeBoundary = L.rectangle(bounds, {
-                color: '#1B3A5C',
-                weight: 2,
-                opacity: 0.5,
-                fillColor: '#1B3A5C',
-                fillOpacity: 0.04,
-                dashArray: '6, 4'
-            }).addTo(map);
-
-            // Add commune name label at center
-            const center = bounds.getCenter();
-            L.marker(center, {
-                icon: L.divIcon({
-                    className: 'commune-boundary-label',
-                    html: scopedCommune.name,
-                    iconSize: [120, 20],
-                    iconAnchor: [60, 10]
-                })
-            }).addTo(map);
-        }
-
-        updateMapMarkers();
-    }
-
-    function getColor(status) {
-        if (status === 'Oui') return '#059669';
-        if (status === 'À vérifier') return '#D97706';
-        return '#DC2626';
-    }
-
-    function updateMapMarkers() {
-        markers.forEach(m => map.removeLayer(m));
-        markers = [];
-        const filtered = getFilteredProperties();
-        let oui = 0, verifier = 0, non = 0;
-
-        filtered.forEach(p => {
-            if (!p.lat || !p.lng) return;
-            const color = getColor(p.status);
-            const marker = L.circleMarker([p.lat, p.lng], {
-                radius: 7,
-                fillColor: color,
-                color: '#fff',
-                weight: 2,
-                fillOpacity: 0.85
-            }).addTo(map);
-            marker.bindPopup(`
-                <div style="font-family:Inter,sans-serif;min-width:220px;">
-                    <div style="font-weight:700;font-size:14px;margin-bottom:4px;">${p.commune}</div>
-                    <div style="font-size:12px;color:#64748B;margin-bottom:8px;">${p.address}</div>
-                    <div style="font-size:12px;"><b>Description:</b> ${p.description}</div>
-                    <div style="font-size:12px;"><b>Cadastral:</b> ${p.cadastral}</div>
-                    <div style="font-size:12px;"><b>Superficie:</b> ${p.superficie}</div>
-                    <div style="margin-top:8px;padding-top:8px;border-top:1px solid #e2e8f0;">
-                        <span style="display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;
-                            background:${p.status === 'Oui' ? '#dcfce7' : p.status === 'À vérifier' ? '#fef3c7' : '#fee2e2'};
-                            color:${p.status === 'Oui' ? '#166534' : p.status === 'À vérifier' ? '#92400e' : '#991b1b'};">
-                            ${p.feasibility}
-                        </span>
-                    </div>
-                    ${p.reason ? `<div style="font-size:11px;color:#94A3B8;margin-top:4px;">${p.reason}</div>` : ''}
-                </div>
-            `);
-            markers.push(marker);
-            if (p.status === 'Oui') oui++;
-            else if (p.status === 'À vérifier') verifier++;
-            else non++;
-        });
-
-        document.getElementById('mapShown').textContent = filtered.length;
-        document.getElementById('mapOui').textContent = oui;
-        document.getElementById('mapVerifier').textContent = verifier;
-        document.getElementById('mapNon').textContent = non;
-    }
-
-    function getFilteredProperties() {
-        const search = (document.getElementById('mapSearch').value || '').toLowerCase();
-        const statusChecked = [...document.querySelectorAll('#statusFilters input:checked')].map(i => i.value);
-        const communeChecked = [...document.querySelectorAll('#communeFilters input:checked')].map(i => i.value);
-
-        return scopedProperties.filter(p => {
-            if (statusChecked.length && !statusChecked.includes(p.status)) return false;
-            if (communeChecked.length && !communeChecked.includes(p.commune)) return false;
-            if (search) {
-                const text = [p.commune, p.address, p.description, p.cadastral, p.feasibility].join(' ').toLowerCase();
-                if (!text.includes(search)) return false;
-            }
-            return true;
-        });
-    }
-
-    // Filters
-    function initFilters() {
-        // Status filters
-        const statuses = [
-            { value: 'Oui', label: 'Possible', cls: 'green' },
-            { value: 'À vérifier', label: 'À vérifier', cls: 'orange' },
-            { value: 'Non', label: 'Non réalisable', cls: 'red' }
-        ];
-        const statusDiv = document.getElementById('statusFilters');
-        statuses.forEach(s => {
-            const count = scopedProperties.filter(p => p.status === s.value).length;
-            statusDiv.innerHTML += `
-                <label class="checkbox-item">
-                    <input type="checkbox" value="${s.value}" checked>
-                    <span class="status-dot ${s.cls}"></span>
-                    ${s.label}
-                    <span class="count">${count}</span>
-                </label>`;
-        });
-
-        // Commune filters
-        const communes = {};
-        scopedProperties.forEach(p => communes[p.commune] = (communes[p.commune] || 0) + 1);
-        const sorted = Object.entries(communes).sort((a, b) => b[1] - a[1]);
-        const communeDiv = document.getElementById('communeFilters');
-        sorted.forEach(([name, count]) => {
-            communeDiv.innerHTML += `
-                <label class="checkbox-item">
-                    <input type="checkbox" value="${name}" checked>
-                    ${name}
-                    <span class="count">${count}</span>
-                </label>`;
-        });
-
-        // Event listeners
-        document.querySelectorAll('#statusFilters input, #communeFilters input').forEach(input => {
-            input.addEventListener('change', updateMapMarkers);
-        });
-        document.getElementById('mapSearch').addEventListener('input', updateMapMarkers);
-    }
-
-    function toggleAllCommunes(checked) {
-        document.querySelectorAll('#communeFilters input').forEach(i => i.checked = checked);
-        updateMapMarkers();
-    }
-
-    // Data table
-    let sortCol = null, sortDir = 1;
-    function initTable() {
-        document.getElementById('dataSubtitle').textContent = `${scopedProperties.length} propriétés — cliquez sur un en-tête pour trier`;
-        renderTable(scopedProperties);
-        document.getElementById('tableSearch').addEventListener('input', function() {
-            const q = this.value.toLowerCase();
-            const filtered = scopedProperties.filter(p => {
-                return [p.commune, p.address, p.description, p.cadastral, p.feasibility, p.reason]
-                    .join(' ').toLowerCase().includes(q);
-            });
-            renderTable(filtered);
-        });
-        document.querySelectorAll('.data-table th[data-sort]').forEach(th => {
-            th.addEventListener('click', () => {
-                const col = th.dataset.sort;
-                if (sortCol === col) sortDir *= -1; else { sortCol = col; sortDir = 1; }
-                const sorted = [...scopedProperties].sort((a, b) => {
-                    const va = (a[col] || '').toString();
-                    const vb = (b[col] || '').toString();
-                    return va.localeCompare(vb, 'fr') * sortDir;
-                });
-                renderTable(sorted);
             });
         });
-    }
 
-    function renderTable(data) {
-        const tbody = document.getElementById('tableBody');
-        tbody.innerHTML = data.map(p => {
-            const badgeCls = p.status === 'Oui' ? 'oui' : p.status === 'À vérifier' ? 'verifier' : 'non';
-            const badgeText = p.status === 'Oui' ? 'Possible' : p.status === 'À vérifier' ? 'À vérifier' : 'Non';
-            return `<tr>
-                <td>${p.commune}</td>
-                <td>${p.address}</td>
-                <td>${p.description}</td>
-                <td>${p.superficie}</td>
-                <td style="font-family:monospace;font-size:11px;">${p.cadastral}</td>
-                <td>${p.list}</td>
-                <td><span class="status-badge ${badgeCls}">${badgeText}</span></td>
-                <td style="font-size:12px;color:var(--text-muted);">${p.reason || '—'}</td>
-            </tr>`;
-        }).join('');
-        document.getElementById('tableFooter').textContent = `Affichage de ${data.length} propriétés sur ${scopedProperties.length}`;
-    }
-    </script>
-</body>
-</html>
+        // Header background on scrol
