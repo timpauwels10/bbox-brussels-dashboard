@@ -1282,6 +1282,48 @@
         return '#DC2626';
     }
 
+    function buildPopupHtml(p) {
+        var statusBg = p.status === 'Oui' ? '#dcfce7' : p.status === 'À vérifier' ? '#fef3c7' : '#fee2e2';
+        var statusColor = p.status === 'Oui' ? '#166534' : p.status === 'À vérifier' ? '#92400e' : '#991b1b';
+        var reasonHtml = p.reason ? '<div style="font-size:11px;color:#94A3B8;margin-top:4px;">' + p.reason + '</div>' : '';
+        var commentsHtml = p.comments ? '<br><b>Comments:</b> ' + p.comments : '';
+
+        return '<div style="font-family:Inter,sans-serif;min-width:250px;max-width:320px;">'
+            + '<div style="font-weight:700;font-size:14px;margin-bottom:4px;">' + p.commune + '</div>'
+            + '<div style="font-size:12px;color:#64748B;margin-bottom:8px;">' + p.address + '</div>'
+            + '<div style="font-size:12px;"><b>Description:</b> ' + p.description + '</div>'
+            + '<div style="font-size:12px;"><b>Cadastral:</b> ' + p.cadastral + '</div>'
+            + '<div style="font-size:12px;"><b>Superficie:</b> ' + p.superficie + '</div>'
+            + '<div style="margin-top:8px;padding-top:8px;border-top:1px solid #e2e8f0;">'
+            +   '<span style="display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;'
+            +     'background:' + statusBg + ';color:' + statusColor + ';">'
+            +     p.feasibility
+            +   '</span>'
+            + '</div>'
+            + reasonHtml
+            + '<div style="margin-top:6px;padding-top:6px;border-top:1px solid #f1f5f9;">'
+            +   '<div style="font-size:9px;color:#94A3B8;line-height:1.5;">'
+            +     '<span><b>Code:</b> ' + (p.code || '—') + '</span> &nbsp;|&nbsp; '
+            +     '<span><b>List:</b> ' + (p.list || '—') + '</span> &nbsp;|&nbsp; '
+            +     '<span><b>Construit:</b> ' + (p.construit || '—') + '</span>'
+            +     commentsHtml
+            +   '</div>'
+            + '</div>'
+            + '<div style="margin-top:8px;padding-top:6px;border-top:1px solid #f1f5f9;display:flex;gap:8px;">'
+            +   '<a href="https://www.google.com/maps?q=' + p.lat + ',' + p.lng + '" target="_blank" rel="noopener"'
+            +     ' style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:6px;background:#f0f7ff;color:#1a73e8;font-size:11px;font-weight:600;text-decoration:none;border:1px solid #d2e3fc;">'
+            +     '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1a73e8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>'
+            +     ' Google Maps'
+            +   '</a>'
+            +   '<a href="https://www.google.com/maps?layer=c&cbll=' + p.lat + ',' + p.lng + '&cbp=11,0,0,0,0" target="_blank" rel="noopener"'
+            +     ' style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:6px;background:#fffbeb;color:#b45309;font-size:11px;font-weight:600;text-decoration:none;border:1px solid #fde68a;">'
+            +     '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#b45309" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>'
+            +     ' Street View'
+            +   '</a>'
+            + '</div>'
+            + '</div>';
+    }
+
     function updateMapMarkers() {
         markers.forEach(m => map.removeLayer(m));
         markers = [];
@@ -1298,23 +1340,7 @@
                 weight: 2,
                 fillOpacity: 0.85
             }).addTo(map);
-            marker.bindPopup(`
-                <div style="font-family:Inter,sans-serif;min-width:220px;">
-                    <div style="font-weight:700;font-size:14px;margin-bottom:4px;">${p.commune}</div>
-                    <div style="font-size:12px;color:#64748B;margin-bottom:8px;">${p.address}</div>
-                    <div style="font-size:12px;"><b>Description:</b> ${p.description}</div>
-                    <div style="font-size:12px;"><b>Cadastral:</b> ${p.cadastral}</div>
-                    <div style="font-size:12px;"><b>Superficie:</b> ${p.superficie}</div>
-                    <div style="margin-top:8px;padding-top:8px;border-top:1px solid #e2e8f0;">
-                        <span style="display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;
-                            background:${p.status === 'Oui' ? '#dcfce7' : p.status === 'À vérifier' ? '#fef3c7' : '#fee2e2'};
-                            color:${p.status === 'Oui' ? '#166534' : p.status === 'À vérifier' ? '#92400e' : '#991b1b'};">
-                            ${p.feasibility}
-                        </span>
-                    </div>
-                    ${p.reason ? `<div style="font-size:11px;color:#94A3B8;margin-top:4px;">${p.reason}</div>` : ''}
-                </div>
-            `);
+            marker.bindPopup(buildPopupHtml(p), {maxHeight: 400, autoPanPaddingTopLeft: L.point(10, 80)});
             markers.push(marker);
             if (p.status === 'Oui') oui++;
             else if (p.status === 'À vérifier') verifier++;
