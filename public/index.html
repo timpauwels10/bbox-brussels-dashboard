@@ -1282,6 +1282,69 @@
         return '#DC2626';
     }
 
+    function buildCriteriaHtml(p) {
+        var sup = p.superficie || 0;
+        var built = (p.construit || '').toLowerCase() === 'oui';
+        var desc = (p.description || '').toLowerCase();
+
+        // Superficie criteria
+        var supOk = sup >= 50;
+        var supIcon = supOk ? '&#10003;' : '&#10007;';
+        var supColor = supOk ? '#166534' : '#991b1b';
+        var supBg = supOk ? '#dcfce7' : '#fee2e2';
+        var supLabel = supOk ? sup + 'm\u00B2 \u2014 OK' : sup + 'm\u00B2 \u2014 trop petite';
+
+        // Construit criteria
+        var builtIcon, builtColor, builtBg, builtLabel;
+        if (!built) {
+            builtIcon = '&#10003;'; builtColor = '#166534'; builtBg = '#dcfce7';
+            builtLabel = 'Non \u2014 terrain libre';
+        } else {
+            builtIcon = '&#9888;'; builtColor = '#92400e'; builtBg = '#fef3c7';
+            builtLabel = 'Oui \u2014 inspection requise';
+        }
+
+        // Type criteria
+        var nonFeasibleTypes = ['parc', 'metro', 'installation technique', 'cours d\'eau', 'chemin de fer'];
+        var cautionTypes = ['jardin', 'construit', 'batiment'];
+        var typeOk = true;
+        var typeCaution = false;
+        for (var i = 0; i < nonFeasibleTypes.length; i++) {
+            if (desc.indexOf(nonFeasibleTypes[i]) > -1) { typeOk = false; break; }
+        }
+        if (typeOk) {
+            for (var j = 0; j < cautionTypes.length; j++) {
+                if (desc.indexOf(cautionTypes[j]) > -1) { typeCaution = true; break; }
+            }
+        }
+        var typeIcon, typeColor, typeBg, typeLabel;
+        var descShort = p.description || '\u2014';
+        if (!typeOk) {
+            typeIcon = '&#10007;'; typeColor = '#991b1b'; typeBg = '#fee2e2';
+            typeLabel = descShort + ' \u2014 non \u00E9ligible';
+        } else if (typeCaution) {
+            typeIcon = '&#9888;'; typeColor = '#92400e'; typeBg = '#fef3c7';
+            typeLabel = descShort + ' \u2014 \u00E0 v\u00E9rifier';
+        } else {
+            typeIcon = '&#10003;'; typeColor = '#166534'; typeBg = '#dcfce7';
+            typeLabel = descShort + ' \u2014 OK';
+        }
+
+        var row = function(label, icon, color, bg, text) {
+            return '<div style="display:flex;align-items:center;gap:5px;margin-bottom:3px;">'
+                + '<span style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:' + bg + ';color:' + color + ';font-size:9px;flex-shrink:0;">' + icon + '</span>'
+                + '<span style="font-size:10px;color:#475569;"><b>' + label + ':</b> ' + text + '</span>'
+                + '</div>';
+        };
+
+        return '<div style="margin-top:6px;padding:6px 8px;border-radius:6px;background:#f8fafc;border:1px solid #e2e8f0;">'
+            + '<div style="font-size:9px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Crit\u00E8res de d\u00E9cision</div>'
+            + row('Superficie', supIcon, supColor, supBg, supLabel)
+            + row('Construit', builtIcon, builtColor, builtBg, builtLabel)
+            + row('Type', typeIcon, typeColor, typeBg, typeLabel)
+            + '</div>';
+    }
+
     function buildPopupHtml(p) {
         var statusBg = p.status === 'Oui' ? '#dcfce7' : p.status === 'À vérifier' ? '#fef3c7' : '#fee2e2';
         var statusColor = p.status === 'Oui' ? '#166534' : p.status === 'À vérifier' ? '#92400e' : '#991b1b';
@@ -1301,6 +1364,7 @@
             +   '</span>'
             + '</div>'
             + reasonHtml
+            + buildCriteriaHtml(p)
             + '<div style="margin-top:6px;padding-top:6px;border-top:1px solid #f1f5f9;">'
             +   '<div style="font-size:9px;color:#94A3B8;line-height:1.5;">'
             +     '<span><b>Code:</b> ' + (p.code || '—') + '</span> &nbsp;|&nbsp; '
